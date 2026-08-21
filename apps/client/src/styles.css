@@ -1,0 +1,13 @@
+@import "tailwindcss";
+@import "./exact-ui.css";
+
+@theme {
+  --color-clinical-bg: #eef1f2;
+  --color-clinical-ink: #18242b;
+  --color-clinical-muted: #60717d;
+  --color-clinical-steel: #d6e0e6;
+  --color-clinical-blue: #2c627f;
+  --color-clinical-navy: #1e465e;
+}
+
+html, body, #root { min-height: 100%; }

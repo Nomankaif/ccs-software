@@ -1,0 +1,202 @@
+{
+  "slug": "adult-dehydration-flow-test",
+  "title": "Adult dehydration workflow test",
+  "specialty": "Internal Medicine",
+  "difficulty": "Beginner",
+  "durationMinutes": 15,
+  "finalOrderMinutes": 2,
+  "opening": "A 32-year-old adult comes to the emergency department after two days of vomiting, diarrhea, dizziness, and reduced oral intake.",
+  "appearance": "The patient appears tired, thirsty, and mildly uncomfortable but is alert and able to answer questions.",
+  "startingLocation": "Emergency Department",
+  "allowedLocations": [
+    "Emergency Department",
+    "Inpatient Unit",
+    "Home"
+  ],
+  "history": {
+    "History of Present Illness": "The patient reports two days of nonbloody vomiting and watery diarrhea after a shared meal. Oral intake has been poor. There is lightheadedness when standing but no syncope.",
+    "Past Medical History": "No chronic medical conditions or prior hospitalizations.",
+    "Medications": "No regular medications.",
+    "Allergies": "No known drug allergies.",
+    "Family History": "No relevant family history.",
+    "Personal/Social History": "No tobacco or recreational drug use. Drinks alcohol occasionally.",
+    "Review of Systems": "No chest pain, dyspnea, focal abdominal pain, blood in stool, dysuria, rash, or recent antibiotic use."
+  },
+  "vitals": {
+    "temperature": "37.2 C",
+    "pulse": "108/min",
+    "respirations": "18/min",
+    "bloodPressure": "102/66 mm Hg",
+    "oxygenSaturation": "98% on room air"
+  },
+  "exam": {
+    "General Appearance": "Alert and tired appearing. Mucous membranes are dry.",
+    "HEENT/Neck": "Dry oral mucosa. Neck is supple.",
+    "Heart/Cardiovascular": "Tachycardic with a regular rhythm. Peripheral pulses are present.",
+    "Chest/Lungs": "Clear to auscultation bilaterally with normal work of breathing.",
+    "Abdomen": "Soft with mild diffuse discomfort and no guarding, rebound, or focal tenderness.",
+    "Extremities/Spine": "No edema or calf tenderness.",
+    "Neuro/Psych": "Alert and oriented with no focal neurologic deficit.",
+    "Skin": "Warm with mildly reduced skin turgor. No rash."
+  },
+  "orders": [
+    {
+      "id": "iv-access",
+      "name": "IV access",
+      "aliases": ["intravenous access", "peripheral iv"],
+      "category": "Procedure"
+    },
+    {
+      "id": "normal-saline",
+      "name": "Sodium chloride 0.9% fluid bolus",
+      "aliases": ["normal saline", "iv fluids", "fluid bolus"],
+      "category": "Medication",
+      "route": ["IV"],
+      "frequency": ["One time/bolus"]
+    },
+    {
+      "id": "ondansetron",
+      "name": "Ondansetron",
+      "aliases": ["antiemetic", "zofran"],
+      "category": "Medication",
+      "route": ["PO", "IV"],
+      "frequency": ["One time/bolus", "Every 8 hours as needed"]
+    },
+    {
+      "id": "cbc",
+      "name": "CBC with differential",
+      "aliases": ["complete blood count"],
+      "category": "Laboratory",
+      "resultDelayMinutes": 20
+    },
+    {
+      "id": "cmp",
+      "name": "Comprehensive metabolic panel",
+      "aliases": ["cmp", "chemistry panel", "electrolytes"],
+      "category": "Laboratory",
+      "resultDelayMinutes": 25
+    },
+    {
+      "id": "urinalysis",
+      "name": "Urinalysis",
+      "aliases": ["ua", "urine test"],
+      "category": "Laboratory",
+      "resultDelayMinutes": 20
+    },
+    {
+      "id": "oral-hydration",
+      "name": "Counseling, oral hydration and return precautions",
+      "aliases": ["hydration counseling", "return precautions"],
+      "category": "Counseling"
+    },
+    {
+      "id": "empiric-antibiotic",
+      "name": "Broad-spectrum antibiotic, empiric",
+      "aliases": ["antibiotic"],
+      "category": "Medication",
+      "route": ["PO", "IV"],
+      "frequency": ["One time/bolus"]
+    }
+  ],
+  "results": [
+    {
+      "orderId": "cbc",
+      "category": "Lab Reports",
+      "value": "WBC 9,200/mm3; hemoglobin 15.8 g/dL; platelets 238,000/mm3."
+    },
+    {
+      "orderId": "cmp",
+      "category": "Lab Reports",
+      "value": "Sodium 136 mEq/L; potassium 3.4 mEq/L; bicarbonate 20 mEq/L; BUN 26 mg/dL; creatinine 1.1 mg/dL; glucose 94 mg/dL."
+    },
+    {
+      "orderId": "urinalysis",
+      "category": "Lab Reports",
+      "value": "Concentrated urine with specific gravity 1.030; no leukocyte esterase, nitrites, blood, or protein."
+    }
+  ],
+  "scoreRules": [
+    {
+      "id": "exam-abdomen",
+      "label": "Focused abdominal examination",
+      "domain": "Diagnosis",
+      "actionType": "exam",
+      "match": "Abdomen",
+      "points": 15,
+      "rationale": "A focused examination helps assess for focal tenderness or peritoneal findings."
+    },
+    {
+      "id": "order-iv-access",
+      "label": "Establish IV access",
+      "domain": "Therapy",
+      "actionType": "order",
+      "match": "iv-access",
+      "points": 10,
+      "rationale": "IV access supports prompt fluid administration."
+    },
+    {
+      "id": "order-fluid",
+      "label": "Administer isotonic fluid",
+      "domain": "Therapy",
+      "actionType": "order",
+      "match": "normal-saline",
+      "points": 20,
+      "rationale": "Isotonic fluid addresses clinically significant volume depletion."
+    },
+    {
+      "id": "order-ondansetron",
+      "label": "Treat ongoing nausea",
+      "domain": "Therapy",
+      "actionType": "order",
+      "match": "ondansetron",
+      "points": 10,
+      "rationale": "Controlling nausea may help the patient resume oral hydration."
+    },
+    {
+      "id": "order-cmp",
+      "label": "Evaluate electrolytes and renal function",
+      "domain": "Diagnosis",
+      "actionType": "order",
+      "match": "cmp",
+      "points": 15,
+      "rationale": "Laboratory assessment helps characterize dehydration and electrolyte disturbance."
+    },
+    {
+      "id": "order-cbc",
+      "label": "Obtain blood count",
+      "domain": "Diagnosis",
+      "actionType": "order",
+      "match": "cbc",
+      "points": 10,
+      "rationale": "A blood count contributes to the initial evaluation."
+    },
+    {
+      "id": "order-counseling",
+      "label": "Provide hydration counseling and return precautions",
+      "domain": "Therapy",
+      "actionType": "order",
+      "match": "oral-hydration",
+      "points": 10,
+      "rationale": "Discharge instructions support continued recovery and escalation when needed."
+    },
+    {
+      "id": "location-home",
+      "label": "Choose home disposition after stabilization",
+      "domain": "Location",
+      "actionType": "location",
+      "match": "Home",
+      "points": 10,
+      "rationale": "A stable patient who can tolerate oral intake may complete recovery at home."
+    },
+    {
+      "id": "harm-antibiotic",
+      "label": "Unnecessary empiric broad-spectrum antibiotic",
+      "domain": "Timing & sequence",
+      "actionType": "order",
+      "match": "empiric-antibiotic",
+      "points": -15,
+      "rationale": "The presentation does not establish an indication for empiric broad-spectrum antibiotic therapy."
+    }
+  ],
+  "feedback": "The intended workflow is focused assessment, correction of volume depletion, symptom control, review of delayed laboratory results, hydration counseling, and an appropriate disposition after stabilization. This fictional case is for software-flow testing and requires clinician review before educational publication."
+}

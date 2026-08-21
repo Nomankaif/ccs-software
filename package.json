@@ -1,0 +1,14 @@
+{
+  "name": "clinical-case-simulator",
+  "private": true,
+  "packageManager": "pnpm@11.9.0",
+  "scripts": {
+    "predev": "pnpm --filter @ccs/domain build && pnpm --filter @ccs/validation build",
+    "dev": "pnpm --parallel --filter @ccs/client --filter @ccs/server dev",
+    "dev:client": "pnpm --filter @ccs/client dev",
+    "dev:server": "pnpm --filter @ccs/server dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  }
+}
