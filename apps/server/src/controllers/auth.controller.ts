@@ -31,7 +31,7 @@ export const getCurrentUser = (request: AuthedRequest, response: Response) => {
 };
 
 export const logout = (_request: Request, response: Response) => {
-  response.clearCookie("accessToken", { path: "/" });
-  response.clearCookie("refreshToken", { path: "/" });
+  response.clearCookie("accessToken", cookieOptions);
+  response.clearCookie("refreshToken", cookieOptions);
   response.status(204).send();
 };

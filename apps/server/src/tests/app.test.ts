@@ -11,13 +11,20 @@ describe("REST API", () => {
 
   it("clears session cookies even when the access token is missing or expired", async () => {
     const response = await request(app).post("/api/v1/auth/logout");
+    const cookies = response.headers["set-cookie"] as unknown as string[];
 
     expect(response.status).toBe(204);
-    expect(response.headers["set-cookie"]).toEqual(
+    expect(cookies).toEqual(
       expect.arrayContaining([
         expect.stringContaining("accessToken="),
         expect.stringContaining("refreshToken=")
       ])
     );
+    for (const cookie of cookies) {
+      expect(cookie).toContain("Path=/");
+      expect(cookie).toContain("HttpOnly");
+      expect(cookie).toContain("SameSite=Lax");
+      expect(cookie).toMatch(/Expires=Thu, 01 Jan 1970 00:00:00 GMT/);
+    }
   });
 });
