@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "tsc --noEmit && vite build",
+    "build": "pnpm --filter @ccs/domain build && pnpm --filter @ccs/validation build && tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"
   },
