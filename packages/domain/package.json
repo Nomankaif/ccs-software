@@ -13,5 +13,8 @@
   "devDependencies": {
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@casl/ability": "^7.0.1"
   }
 }

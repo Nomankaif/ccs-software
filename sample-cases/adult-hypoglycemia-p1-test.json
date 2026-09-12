@@ -1,0 +1,800 @@
+{
+  "slug": "adult-hypoglycemia-p1-test",
+  "title": "Adult hypoglycemia P1 feature test",
+  "specialty": "Emergency Medicine",
+  "difficulty": "Beginner",
+  "durationMinutes": 15,
+  "finalOrderMinutes": 2,
+  "opening": "A 46-year-old adult with diabetes is brought to the emergency department because of sweating, confusion, and difficulty speaking that began shortly after taking insulin without eating breakfast.",
+  "appearance": "The patient is pale, diaphoretic, confused, and able to follow only simple commands.",
+  "startingLocation": "Emergency Department",
+  "allowedLocations": [
+    "Emergency Department",
+    "Inpatient Unit",
+    "ICU",
+    "Home"
+  ],
+  "locationTransfers": [
+    {
+      "from": "Emergency Department",
+      "to": "Inpatient Unit",
+      "minutes": 15
+    },
+    {
+      "from": "Emergency Department",
+      "to": "ICU",
+      "minutes": 10
+    },
+    {
+      "from": "Emergency Department",
+      "to": "Home",
+      "minutes": 20
+    },
+    {
+      "from": "Inpatient Unit",
+      "to": "Home",
+      "minutes": 20
+    }
+  ],
+  "history": {
+    "History of Present Illness": "The patient took the usual morning insulin dose but skipped breakfast because of nausea. Coworkers noticed sweating, confusion, and slurred speech approximately 25 minutes later.",
+    "Past Medical History": "Type 1 diabetes mellitus. No history of stroke, seizure disorder, kidney disease, or liver disease.",
+    "Medications": "Basal and mealtime insulin.",
+    "Allergies": "No known drug allergies.",
+    "Family History": "No relevant family history.",
+    "Personal/Social History": "No tobacco or recreational drug use. Drinks alcohol occasionally.",
+    "Review of Systems": "No fever, chest pain, dyspnea, trauma, severe headache, or recent infectious symptoms."
+  },
+  "vitals": {
+    "temperature": "36.7 C",
+    "pulse": "112/min",
+    "respirations": "20/min",
+    "bloodPressure": "146/86 mm Hg",
+    "oxygenSaturation": "99% on room air"
+  },
+  "exam": {
+    "General Appearance": "Pale and diaphoretic. The patient appears anxious and confused.",
+    "HEENT/Neck": "No evidence of head trauma. Pupils are equal and reactive. Neck is supple.",
+    "Heart/Cardiovascular": "Tachycardic with a regular rhythm. Peripheral pulses are normal.",
+    "Chest/Lungs": "Clear to auscultation with normal work of breathing.",
+    "Abdomen": "Soft, nondistended, and nontender.",
+    "Extremities/Spine": "No edema or evidence of injury.",
+    "Neuro/Psych": "Confused and dysarthric but moves all extremities symmetrically. No facial asymmetry or focal weakness.",
+    "Skin": "Cool and diaphoretic without rash."
+  },
+  "initialClinicalStateId": "symptomatic-hypoglycemia",
+  "clinicalStates": [
+    {
+      "id": "symptomatic-hypoglycemia",
+      "appearance": "The patient is pale, diaphoretic, confused, and able to follow only simple commands.",
+      "vitals": {
+        "temperature": "36.7 C",
+        "pulse": "112/min",
+        "respirations": "20/min",
+        "bloodPressure": "146/86 mm Hg",
+        "oxygenSaturation": "99% on room air"
+      }
+    },
+    {
+      "id": "recovered-after-glucose",
+      "appearance": "The patient is alert, conversant, and no longer diaphoretic.",
+      "vitals": {
+        "temperature": "36.8 C",
+        "pulse": "86/min",
+        "respirations": "16/min",
+        "bloodPressure": "128/78 mm Hg",
+        "oxygenSaturation": "99% on room air"
+      },
+      "progressNote": "After glucose administration, mental status returns to baseline and diaphoresis resolves. The patient can tolerate oral intake."
+    },
+    {
+      "id": "partially-treated-hypoglycemia",
+      "appearance": "The patient is less diaphoretic but remains drowsy and answers questions slowly.",
+      "vitals": {
+        "temperature": "36.7 C",
+        "pulse": "102/min",
+        "respirations": "18/min",
+        "bloodPressure": "138/82 mm Hg",
+        "oxygenSaturation": "99% on room air"
+      },
+      "progressNote": "Glucose replacement has produced an incomplete response. The patient remains symptomatic and requires prompt reassessment and additional treatment."
+    },
+    {
+      "id": "severe-hypoglycemia",
+      "appearance": "The patient is poorly responsive with persistent diaphoresis and intermittent generalized shaking.",
+      "vitals": {
+        "temperature": "36.5 C",
+        "pulse": "126/min",
+        "respirations": "24/min",
+        "bloodPressure": "154/92 mm Hg",
+        "oxygenSaturation": "96% on room air"
+      },
+      "progressNote": "Untreated or worsened hypoglycemia has caused declining responsiveness and seizure-like activity."
+    }
+  ],
+  "orders": [
+    {
+      "id": "poc-glucose",
+      "name": "Glucose, point-of-care",
+      "aliases": [
+        "fingerstick glucose",
+        "bedside glucose",
+        "blood sugar"
+      ],
+      "category": "Laboratory",
+      "frequency": [
+        "One time",
+        "Every 15 minutes"
+      ],
+      "priority": [
+        "STAT",
+        "Routine"
+      ],
+      "resultDelayMinutes": 5
+    },
+    {
+      "id": "iv-access",
+      "name": "IV access",
+      "aliases": [
+        "intravenous access",
+        "peripheral iv"
+      ],
+      "category": "Procedure",
+      "priority": [
+        "STAT",
+        "Routine"
+      ]
+    },
+    {
+      "id": "dextrose-iv",
+      "name": "Dextrose intravenous",
+      "aliases": [
+        "iv glucose",
+        "d50",
+        "dextrose 50"
+      ],
+      "category": "Medication",
+      "route": [
+        "IV"
+      ],
+      "dose": [
+        "25 g",
+        "12.5 g"
+      ],
+      "frequency": [
+        "One time/bolus"
+      ],
+      "duration": [
+        "Immediate"
+      ],
+      "priority": [
+        "STAT"
+      ]
+    },
+    {
+      "id": "oral-glucose",
+      "name": "Oral glucose",
+      "aliases": [
+        "glucose gel",
+        "oral carbohydrate"
+      ],
+      "category": "Medication",
+      "route": [
+        "PO"
+      ],
+      "dose": [
+        "15 g",
+        "30 g"
+      ],
+      "frequency": [
+        "One time"
+      ],
+      "priority": [
+        "STAT"
+      ]
+    },
+    {
+      "id": "cmp",
+      "name": "Comprehensive metabolic panel",
+      "aliases": [
+        "cmp",
+        "chemistry panel",
+        "electrolytes"
+      ],
+      "category": "Laboratory",
+      "priority": [
+        "STAT",
+        "Routine"
+      ],
+      "resultDelayMinutes": 35
+    },
+    {
+      "id": "cardiac-monitor",
+      "name": "Cardiac monitor",
+      "aliases": [
+        "telemetry",
+        "continuous cardiac monitoring"
+      ],
+      "category": "Monitoring"
+    },
+    {
+      "id": "ct-head",
+      "name": "CT head without contrast",
+      "aliases": [
+        "head ct",
+        "brain ct"
+      ],
+      "category": "Imaging",
+      "priority": [
+        "STAT",
+        "Routine"
+      ],
+      "resultDelayMinutes": 30
+    },
+    {
+      "id": "regular-insulin",
+      "name": "Regular insulin",
+      "aliases": [
+        "insulin",
+        "short acting insulin"
+      ],
+      "category": "Medication",
+      "route": [
+        "IV",
+        "Subcutaneous"
+      ],
+      "dose": [
+        "5 units",
+        "10 units"
+      ],
+      "frequency": [
+        "One time"
+      ],
+      "priority": [
+        "STAT",
+        "Routine"
+      ]
+    },
+    {
+      "id": "hypoglycemia-counseling",
+      "name": "Counseling, hypoglycemia prevention",
+      "aliases": [
+        "diabetes counseling",
+        "meal and insulin counseling"
+      ],
+      "category": "Counseling"
+    }
+  ],
+  "orderBehaviors": [
+    {
+      "orderId": "poc-glucose",
+      "qualifierConditions": {
+        "frequency": ["Every 15 minutes"]
+      },
+      "classification": "beneficial",
+      "processingMinutes": 5,
+      "schedule": {
+        "intervalMinutes": 15,
+        "maximumOccurrences": 3,
+        "repeatResults": true,
+        "repeatClinicalResponse": false,
+        "cancelWhenUnavailable": true
+      },
+      "allowedLocations": [
+        "Emergency Department",
+        "Inpatient Unit",
+        "ICU"
+      ]
+    },
+    {
+      "orderId": "poc-glucose",
+      "classification": "beneficial",
+      "processingMinutes": 5,
+      "allowedLocations": [
+        "Emergency Department",
+        "Inpatient Unit",
+        "ICU"
+      ]
+    },
+    {
+      "orderId": "dextrose-iv",
+      "qualifierConditions": {
+        "route": ["IV"],
+        "dose": ["25 g"],
+        "frequency": ["One time/bolus"],
+        "duration": ["Immediate"],
+        "priority": ["STAT"]
+      },
+      "classification": "beneficial",
+      "allowedLocations": [
+        "Emergency Department",
+        "Inpatient Unit",
+        "ICU"
+      ],
+      "responseDelayMinutes": 10,
+      "targetStateId": "recovered-after-glucose",
+      "notification": "The patient becomes alert and asks what happened. Diaphoresis has resolved.",
+      "priority": 100,
+      "eventTag": "glucose-replacement-response",
+      "allowedFromStateIds": [
+        "symptomatic-hypoglycemia",
+        "severe-hypoglycemia"
+      ],
+      "cancelPendingEventTags": [
+        "untreated-hypoglycemia"
+      ],
+      "treatmentPrerequisites": {
+        "requiredOrderIds": ["iv-access"]
+      }
+    },
+    {
+      "orderId": "dextrose-iv",
+      "qualifierConditions": {
+        "dose": ["12.5 g"]
+      },
+      "classification": "beneficial",
+      "allowedLocations": [
+        "Emergency Department",
+        "Inpatient Unit",
+        "ICU"
+      ],
+      "responseDelayMinutes": 10,
+      "targetStateId": "partially-treated-hypoglycemia",
+      "notification": "The patient is less diaphoretic but remains drowsy after the smaller dextrose dose.",
+      "priority": 90,
+      "eventTag": "partial-glucose-replacement-response",
+      "allowedFromStateIds": [
+        "symptomatic-hypoglycemia",
+        "severe-hypoglycemia"
+      ],
+      "treatmentPrerequisites": {
+        "requiredOrderIds": ["iv-access"]
+      }
+    },
+    {
+      "orderId": "dextrose-iv",
+      "classification": "beneficial",
+      "allowedLocations": [
+        "Emergency Department",
+        "Inpatient Unit",
+        "ICU"
+      ],
+      "responseDelayMinutes": 20,
+      "targetStateId": "partially-treated-hypoglycemia",
+      "notification": "Glucose replacement was not configured for immediate full effect; the patient remains drowsy and needs reassessment.",
+      "priority": 70,
+      "eventTag": "delayed-glucose-replacement-response",
+      "allowedFromStateIds": [
+        "symptomatic-hypoglycemia",
+        "severe-hypoglycemia"
+      ],
+      "treatmentPrerequisites": {
+        "requiredOrderIds": ["iv-access"]
+      }
+    },
+    {
+      "orderId": "oral-glucose",
+      "classification": "neutral",
+      "responseDelayMinutes": 20,
+      "progressNote": "Because the confused patient cannot safely follow swallowing instructions, oral treatment is not reliably administered.",
+      "priority": 10,
+      "eventTag": "unsafe-oral-treatment-note",
+      "allowedFromStateIds": [
+        "symptomatic-hypoglycemia"
+      ]
+    },
+    {
+      "orderId": "cmp",
+      "classification": "beneficial",
+      "processingMinutes": 20
+    },
+    {
+      "orderId": "cardiac-monitor",
+      "classification": "beneficial",
+      "schedule": {
+        "intervalMinutes": 5,
+        "durationMinutes": 30,
+        "repeatResults": false,
+        "repeatClinicalResponse": false,
+        "cancelWhenUnavailable": true
+      },
+      "allowedLocations": [
+        "Emergency Department",
+        "Inpatient Unit",
+        "ICU"
+      ]
+    },
+    {
+      "orderId": "ct-head",
+      "classification": "unnecessary",
+      "processingMinutes": 30
+    },
+    {
+      "orderId": "regular-insulin",
+      "qualifierConditions": {
+        "route": ["IV"],
+        "dose": ["10 units"],
+        "priority": ["STAT"]
+      },
+      "classification": "harmful",
+      "allowedLocations": [
+        "Emergency Department",
+        "Inpatient Unit",
+        "ICU"
+      ],
+      "responseDelayMinutes": 2,
+      "targetStateId": "severe-hypoglycemia",
+      "notification": "The patient's responsiveness rapidly declines and generalized shaking begins after high-dose intravenous insulin.",
+      "priority": 120,
+      "eventTag": "high-dose-insulin-worsening",
+      "allowedFromStateIds": [
+        "symptomatic-hypoglycemia",
+        "partially-treated-hypoglycemia",
+        "recovered-after-glucose"
+      ],
+      "blockedInStateIds": [
+        "severe-hypoglycemia"
+      ],
+      "treatmentPrerequisites": {
+        "requiredOrderIds": ["iv-access"]
+      }
+    },
+    {
+      "orderId": "regular-insulin",
+      "classification": "harmful",
+      "allowedLocations": [
+        "Emergency Department",
+        "Inpatient Unit",
+        "ICU"
+      ],
+      "responseDelayMinutes": 5,
+      "targetStateId": "severe-hypoglycemia",
+      "notification": "The patient's responsiveness declines and generalized shaking begins after additional insulin.",
+      "priority": 110,
+      "eventTag": "additional-insulin-worsening",
+      "allowedFromStateIds": [
+        "symptomatic-hypoglycemia",
+        "partially-treated-hypoglycemia",
+        "recovered-after-glucose"
+      ],
+      "blockedInStateIds": [
+        "severe-hypoglycemia"
+      ],
+      "treatmentPrerequisites": {
+        "requiredOrderIds": ["iv-access"]
+      }
+    }
+  ],
+  "results": [
+    {
+      "orderId": "poc-glucose",
+      "category": "Lab Reports",
+      "value": "Point-of-care glucose: 34 mg/dL (critically low).",
+      "variants": [
+        {
+          "clinicalStateId": "recovered-after-glucose",
+          "value": "Point-of-care glucose: 104 mg/dL."
+        },
+        {
+          "clinicalStateId": "severe-hypoglycemia",
+          "value": "Point-of-care glucose: 22 mg/dL (critically low)."
+        },
+        {
+          "clinicalStateId": "partially-treated-hypoglycemia",
+          "value": "Point-of-care glucose: 61 mg/dL (still low)."
+        }
+      ]
+    },
+    {
+      "orderId": "cmp",
+      "category": "Lab Reports",
+      "value": "Glucose 36 mg/dL; sodium 138 mEq/L; potassium 3.8 mEq/L; bicarbonate 23 mEq/L; BUN 17 mg/dL; creatinine 0.9 mg/dL."
+    },
+    {
+      "orderId": "ct-head",
+      "category": "Imaging",
+      "value": "No acute intracranial hemorrhage, mass effect, or territorial infarction."
+    }
+  ],
+  "transitionRules": [
+    {
+      "id": "untreated-hypoglycemia-deterioration",
+      "trigger": {
+        "type": "time_reached",
+        "atMinute": 30
+      },
+      "targetStateId": "severe-hypoglycemia",
+      "notification": "The untreated patient becomes poorly responsive and develops seizure-like activity.",
+      "priority": 80,
+      "eventTag": "untreated-hypoglycemia",
+      "allowedFromStateIds": [
+        "symptomatic-hypoglycemia",
+        "partially-treated-hypoglycemia"
+      ]
+    },
+    {
+      "id": "iv-dextrose-sequence",
+      "trigger": {
+        "type": "action_combination",
+        "requiredOrderIds": [
+          "iv-access",
+          "dextrose-iv"
+        ]
+      },
+      "progressNote": "Peripheral IV access is established and intravenous dextrose is administered."
+    },
+    {
+      "id": "critical-glucose-result",
+      "trigger": {
+        "type": "order_completed",
+        "match": "poc-glucose"
+      },
+      "notification": "The bedside glucose result is critically low at 34 mg/dL.",
+      "priority": 50,
+      "eventTag": "critical-glucose-notification"
+    },
+    {
+      "id": "safe-discharge-after-recovery",
+      "trigger": {
+        "type": "location_changed",
+        "match": "Home"
+      },
+      "conditions": {
+        "clinicalStateId": "recovered-after-glucose"
+      },
+      "progressNote": "After observation, oral intake, and return to baseline mental status, the patient is discharged with prevention counseling and return precautions."
+    }
+  ],
+  "endConditions": [
+    {
+      "id": "recovered-and-discharged",
+      "conditions": {
+        "clinicalStateId": "recovered-after-glucose",
+        "location": "Home"
+      },
+      "reason": "The patient recovered and an appropriate disposition was selected.",
+      "finalOrderMinutes": 2
+    },
+    {
+      "id": "severe-deterioration",
+      "conditions": {
+        "clinicalStateId": "severe-hypoglycemia"
+      },
+      "reason": "The patient's condition became critically unstable.",
+      "finalOrderMinutes": 2
+    }
+  ],
+  "scoreRules": [
+    {
+      "id": "focused-neurologic-exam",
+      "label": "Focused neurologic examination",
+      "domain": "Diagnosis",
+      "actionType": "exam",
+      "match": "Neuro/Psych",
+      "points": 10,
+      "rationale": "A focused examination helps assess altered mental status and possible focal neurologic findings.",
+      "timing": {
+        "fullCreditByMinute": 5,
+        "partialCreditByMinute": 10,
+        "partialCreditPoints": 5
+      }
+    },
+    {
+      "id": "check-glucose",
+      "label": "Obtain point-of-care glucose",
+      "domain": "Diagnosis",
+      "actionType": "order",
+      "match": "poc-glucose",
+      "points": 20,
+      "rationale": "Bedside glucose measurement rapidly identifies a reversible cause of altered mental status.",
+      "timing": {
+        "fullCreditByMinute": 5,
+        "partialCreditByMinute": 10,
+        "partialCreditPoints": 10
+      }
+    },
+    {
+      "id": "establish-iv",
+      "label": "Establish IV access",
+      "domain": "Therapy",
+      "actionType": "order",
+      "match": "iv-access",
+      "points": 10,
+      "rationale": "IV access allows rapid administration of glucose to a patient who cannot safely take oral treatment.",
+      "timing": {
+        "fullCreditByMinute": 10,
+        "partialCreditByMinute": 20,
+        "partialCreditPoints": 5
+      }
+    },
+    {
+      "id": "give-dextrose",
+      "label": "Administer intravenous dextrose",
+      "domain": "Therapy",
+      "actionType": "order",
+      "match": "dextrose-iv",
+      "points": 25,
+      "qualifierConditions": {
+        "route": ["IV"],
+        "dose": ["25 g"],
+        "frequency": ["One time/bolus"],
+        "duration": ["Immediate"],
+        "priority": ["STAT"]
+      },
+      "pointsIfQualifierMismatch": 10,
+      "rationale": "Prompt glucose administration treats symptomatic hypoglycemia.",
+      "timing": {
+        "fullCreditByMinute": 10,
+        "partialCreditByMinute": 20,
+        "partialCreditPoints": 10
+      },
+      "sequence": {
+        "requiredPriorActions": [
+          {
+            "actionType": "order",
+            "match": "poc-glucose"
+          },
+          {
+            "actionType": "order",
+            "match": "iv-access"
+          }
+        ],
+        "pointsIfViolated": 0
+      }
+    },
+    {
+      "id": "monitor-patient",
+      "label": "Provide cardiac monitoring",
+      "domain": "Monitoring",
+      "actionType": "order",
+      "match": "cardiac-monitor",
+      "points": 10,
+      "rationale": "Monitoring is appropriate during treatment of severe symptomatic hypoglycemia.",
+      "timing": {
+        "fullCreditByMinute": 15,
+        "partialCreditByMinute": 30,
+        "partialCreditPoints": 5
+      }
+    },
+    {
+      "id": "repeat-glucose-after-treatment",
+      "label": "Repeat point-of-care glucose after treatment",
+      "domain": "Monitoring",
+      "actionType": "result",
+      "match": "poc-glucose",
+      "points": 10,
+      "rationale": "Repeat bedside glucose confirms response to treatment and detects persistent or recurrent hypoglycemia.",
+      "minimumOccurrences": 1,
+      "afterAction": {
+        "actionType": "order",
+        "match": "dextrose-iv",
+        "minimumDelayMinutes": 10,
+        "maximumDelayMinutes": 30
+      },
+      "sequence": {
+        "requiredPriorActions": [
+          {
+            "actionType": "clinical_state",
+            "match": "recovered-after-glucose"
+          }
+        ],
+        "pointsIfViolated": 0
+      }
+    },
+    {
+      "id": "prevention-counseling",
+      "label": "Provide hypoglycemia prevention counseling",
+      "domain": "Therapy",
+      "actionType": "order",
+      "match": "hypoglycemia-counseling",
+      "points": 5,
+      "rationale": "Education about coordinating meals and insulin helps prevent recurrence."
+    },
+    {
+      "id": "home-after-recovery",
+      "label": "Choose home disposition after recovery",
+      "domain": "Location",
+      "actionType": "location",
+      "match": "Home",
+      "points": 10,
+      "rationale": "A patient who returns to baseline and tolerates oral intake may be discharged after appropriate observation and counseling.",
+      "sequence": {
+        "requiredPriorActions": [
+          {
+            "actionType": "clinical_state",
+            "match": "recovered-after-glucose"
+          }
+        ],
+        "pointsIfViolated": -10
+      }
+    },
+    {
+      "id": "harm-additional-insulin",
+      "label": "Administer additional insulin during hypoglycemia",
+      "domain": "Therapy",
+      "actionType": "order",
+      "match": "regular-insulin",
+      "points": -30,
+      "rationale": "Additional insulin worsens the patient's critically low glucose level."
+    }
+  ],
+  "testScenarios": [
+    {
+      "id": "ideal-hypoglycemia-management",
+      "name": "Ideal hypoglycemia management",
+      "kind": "ideal",
+      "actions": [
+        { "type": "PERFORM_EXAM", "sections": ["Neuro/Psych"] },
+        { "type": "PLACE_ORDER", "orderId": "poc-glucose", "frequency": "One time", "priority": "STAT" },
+        { "type": "PLACE_ORDER", "orderId": "iv-access", "priority": "STAT" },
+        { "type": "PLACE_ORDER", "orderId": "dextrose-iv", "route": "IV", "dose": "25 g", "frequency": "One time/bolus", "duration": "Immediate", "priority": "STAT" },
+        { "type": "PLACE_ORDER", "orderId": "cardiac-monitor" },
+        { "type": "ADVANCE_TIME", "minutes": 10 },
+        { "type": "PLACE_ORDER", "orderId": "poc-glucose", "frequency": "Every 15 minutes", "priority": "STAT" },
+        { "type": "ADVANCE_TIME", "minutes": 5 },
+        { "type": "PLACE_ORDER", "orderId": "hypoglycemia-counseling" },
+        { "type": "CHANGE_LOCATION", "location": "Home" },
+        { "type": "FINISH_CASE" }
+      ],
+      "expected": {
+        "minimumScore": 100,
+        "maximumScore": 100,
+        "status": "completed",
+        "clinicalStateId": "recovered-after-glucose",
+        "resultOrderIds": ["poc-glucose"]
+      }
+    },
+    {
+      "id": "delayed-hypoglycemia-treatment",
+      "name": "Delayed glucose replacement",
+      "kind": "delayed",
+      "actions": [
+        { "type": "ADVANCE_TIME", "minutes": 12 },
+        { "type": "PLACE_ORDER", "orderId": "poc-glucose", "frequency": "One time", "priority": "STAT" },
+        { "type": "PLACE_ORDER", "orderId": "iv-access", "priority": "STAT" },
+        { "type": "PLACE_ORDER", "orderId": "dextrose-iv", "route": "IV", "dose": "25 g", "frequency": "One time/bolus", "duration": "Immediate", "priority": "STAT" },
+        { "type": "ADVANCE_TIME", "minutes": 10 },
+        { "type": "FINISH_CASE" }
+      ],
+      "expected": {
+        "minimumScore": 15,
+        "maximumScore": 25,
+        "status": "completed",
+        "clinicalStateId": "recovered-after-glucose"
+      }
+    },
+    {
+      "id": "harmful-insulin-treatment",
+      "name": "Harmful additional insulin",
+      "kind": "harmful",
+      "actions": [
+        { "type": "PLACE_ORDER", "orderId": "iv-access", "priority": "STAT" },
+        { "type": "PLACE_ORDER", "orderId": "regular-insulin", "route": "IV", "dose": "5 units", "frequency": "One time", "priority": "STAT" },
+        { "type": "ADVANCE_TIME", "minutes": 5 },
+        { "type": "FINISH_CASE" }
+      ],
+      "expected": {
+        "minimumScore": 0,
+        "maximumScore": 0,
+        "status": "completed",
+        "clinicalStateId": "severe-hypoglycemia"
+      }
+    },
+    {
+      "id": "untreated-hypoglycemia",
+      "name": "No treatment deterioration",
+      "kind": "no_treatment",
+      "actions": [
+        { "type": "ADVANCE_TIME", "minutes": 30 },
+        { "type": "FINISH_CASE" }
+      ],
+      "expected": {
+        "minimumScore": 0,
+        "maximumScore": 0,
+        "status": "completed",
+        "clinicalStateId": "severe-hypoglycemia"
+      }
+    }
+  ],
+  "feedback": "This synthetic software-validation case tests recognition of symptomatic hypoglycemia, rapid bedside testing, safe glucose replacement, monitoring, reassessment, prevention counseling, and disposition after recovery. It is not clinician-reviewed educational content."
+}

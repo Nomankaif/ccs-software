@@ -1,0 +1,339 @@
+{
+  "slug": "dummy-order-flow-teaching-case",
+  "title": "Dummy dehydration order-flow teaching case",
+  "specialty": "Internal Medicine",
+  "difficulty": "Beginner",
+  "durationMinutes": 10,
+  "finalOrderMinutes": 2,
+  "opening": "A synthetic 30-year-old patient presents to the emergency department after two days of vomiting, dizziness, and reduced oral intake.",
+  "appearance": "The patient is awake, tired, and mildly dehydrated.",
+  "startingLocation": "Emergency Department",
+  "allowedLocations": [
+    "Emergency Department",
+    "Inpatient Unit",
+    "ICU",
+    "Home"
+  ],
+  "locationTransfers": [
+    {
+      "from": "Emergency Department",
+      "to": "Inpatient Unit",
+      "minutes": 15
+    },
+    {
+      "from": "Emergency Department",
+      "to": "ICU",
+      "minutes": 10
+    },
+    {
+      "from": "Emergency Department",
+      "to": "Home",
+      "minutes": 20
+    }
+  ],
+  "history": {
+    "History of Present Illness": "The patient has vomited six times and has been unable to keep fluids down for two days.",
+    "Past Medical History": "No chronic medical conditions.",
+    "Medications": "None.",
+    "Allergies": "No known drug allergies.",
+    "Review of Systems": "No chest pain, bleeding, focal weakness, or fever."
+  },
+  "vitals": {
+    "temperature": "37.0 C",
+    "pulse": "112/min",
+    "respirations": "18/min",
+    "bloodPressure": "96/62 mm Hg",
+    "oxygenSaturation": "99% on room air"
+  },
+  "exam": {
+    "General Appearance": "Tired but awake and cooperative.",
+    "Heart/Cardiovascular": "Tachycardic with a regular rhythm.",
+    "Chest/Lungs": "Clear to auscultation.",
+    "Abdomen": "Soft with no focal tenderness.",
+    "Skin": "Dry mucous membranes and reduced skin turgor.",
+    "Neuro/Psych": "Alert and oriented without focal deficits."
+  },
+  "initialClinicalStateId": "dehydrated",
+  "clinicalStates": [
+    {
+      "id": "dehydrated",
+      "appearance": "The patient remains tired and mildly dehydrated.",
+      "vitals": {
+        "temperature": "37.0 C",
+        "pulse": "112/min",
+        "respirations": "18/min",
+        "bloodPressure": "96/62 mm Hg",
+        "oxygenSaturation": "99% on room air"
+      }
+    },
+    {
+      "id": "improved",
+      "appearance": "The patient is comfortable, alert, and no longer dizzy.",
+      "vitals": {
+        "temperature": "37.0 C",
+        "pulse": "84/min",
+        "respirations": "16/min",
+        "bloodPressure": "116/74 mm Hg",
+        "oxygenSaturation": "99% on room air"
+      },
+      "progressNote": "Dizziness and tachycardia resolve after intravenous fluid replacement."
+    },
+    {
+      "id": "worsened",
+      "appearance": "The patient is weak, confused, and hypotensive.",
+      "vitals": {
+        "temperature": "37.1 C",
+        "pulse": "132/min",
+        "respirations": "24/min",
+        "bloodPressure": "78/46 mm Hg",
+        "oxygenSaturation": "97% on room air"
+      },
+      "progressNote": "Volume depletion has worsened with hypotension and confusion."
+    }
+  ],
+  "orders": [
+    {
+      "id": "cmp",
+      "name": "Comprehensive metabolic panel",
+      "aliases": ["cmp", "chemistry panel", "electrolytes"],
+      "category": "Laboratory",
+      "priority": ["STAT", "Routine"],
+      "resultDelayMinutes": 30
+    },
+    {
+      "id": "iv-access",
+      "name": "IV access",
+      "aliases": ["intravenous access", "peripheral iv"],
+      "category": "Procedure",
+      "priority": ["STAT", "Routine"]
+    },
+    {
+      "id": "normal-saline-bolus",
+      "name": "Sodium chloride 0.9% bolus",
+      "aliases": ["normal saline", "iv fluid", "ns bolus"],
+      "category": "Medication",
+      "route": ["IV"],
+      "dose": ["1000 mL", "500 mL"],
+      "frequency": ["One time/bolus"],
+      "priority": ["STAT"]
+    },
+    {
+      "id": "cardiac-monitor",
+      "name": "Cardiac monitor",
+      "aliases": ["telemetry", "continuous cardiac monitoring"],
+      "category": "Monitoring"
+    },
+    {
+      "id": "oral-fluids",
+      "name": "Oral fluids",
+      "aliases": ["oral hydration", "water by mouth"],
+      "category": "Medication",
+      "route": ["PO"]
+    },
+    {
+      "id": "ct-abdomen",
+      "name": "CT abdomen with contrast",
+      "aliases": ["abdominal ct", "ct belly"],
+      "category": "Imaging",
+      "priority": ["STAT", "Routine"],
+      "resultDelayMinutes": 45
+    },
+    {
+      "id": "furosemide-iv",
+      "name": "Furosemide intravenous",
+      "aliases": ["iv furosemide", "lasix"],
+      "category": "Medication",
+      "route": ["IV"],
+      "dose": ["20 mg", "40 mg"],
+      "frequency": ["One time"],
+      "priority": ["STAT", "Routine"]
+    },
+    {
+      "id": "hydration-counseling",
+      "name": "Counseling, oral hydration and return precautions",
+      "aliases": ["hydration counseling", "return precautions"],
+      "category": "Counseling"
+    }
+  ],
+  "orderBehaviors": [
+    {
+      "orderId": "cmp",
+      "classification": "beneficial",
+      "processingMinutes": 10
+    },
+    {
+      "orderId": "iv-access",
+      "classification": "beneficial"
+    },
+    {
+      "orderId": "normal-saline-bolus",
+      "classification": "beneficial",
+      "allowedLocations": ["Emergency Department", "Inpatient Unit", "ICU"],
+      "responseDelayMinutes": 20,
+      "targetStateId": "improved",
+      "notification": "The patient's dizziness resolves and vital signs improve after the saline bolus.",
+      "treatmentPrerequisites": {
+        "requiredOrderIds": ["iv-access"]
+      }
+    },
+    {
+      "orderId": "cardiac-monitor",
+      "classification": "beneficial"
+    },
+    {
+      "orderId": "oral-fluids",
+      "classification": "neutral",
+      "responseDelayMinutes": 10,
+      "progressNote": "The patient remains nauseated and cannot tolerate enough oral fluid for rapid replacement."
+    },
+    {
+      "orderId": "ct-abdomen",
+      "classification": "unnecessary",
+      "processingMinutes": 25
+    },
+    {
+      "orderId": "furosemide-iv",
+      "classification": "harmful",
+      "allowedLocations": ["Emergency Department", "Inpatient Unit", "ICU"],
+      "responseDelayMinutes": 10,
+      "targetStateId": "worsened",
+      "notification": "The patient becomes hypotensive and confused after additional fluid loss.",
+      "treatmentPrerequisites": {
+        "requiredOrderIds": ["iv-access"]
+      }
+    },
+    {
+      "orderId": "hydration-counseling",
+      "classification": "beneficial"
+    }
+  ],
+  "results": [
+    {
+      "orderId": "cmp",
+      "category": "Lab Reports",
+      "value": "Sodium 148 mEq/L; potassium 3.4 mEq/L; bicarbonate 20 mEq/L; BUN 30 mg/dL; creatinine 1.2 mg/dL."
+    },
+    {
+      "orderId": "ct-abdomen",
+      "category": "Imaging",
+      "value": "No acute abdominal abnormality."
+    }
+  ],
+  "transitionRules": [
+    {
+      "id": "untreated-dehydration-worsens",
+      "trigger": {
+        "type": "time_reached",
+        "atMinute": 60
+      },
+      "conditions": {
+        "clinicalStateId": "dehydrated"
+      },
+      "targetStateId": "worsened",
+      "notification": "Without effective fluid replacement, the patient becomes hypotensive and confused."
+    },
+    {
+      "id": "iv-fluid-sequence-note",
+      "trigger": {
+        "type": "action_combination",
+        "requiredOrderIds": ["iv-access", "normal-saline-bolus"]
+      },
+      "progressNote": "Peripheral IV access is established and a normal saline bolus is administered."
+    },
+    {
+      "id": "safe-home-after-improvement",
+      "trigger": {
+        "type": "location_changed",
+        "match": "Home"
+      },
+      "conditions": {
+        "clinicalStateId": "improved"
+      },
+      "progressNote": "The improved patient is discharged with hydration instructions and return precautions."
+    }
+  ],
+  "scoreRules": [
+    {
+      "id": "focused-exam",
+      "label": "Perform focused cardiovascular examination",
+      "domain": "Diagnosis",
+      "actionType": "exam",
+      "match": "Heart/Cardiovascular",
+      "points": 10,
+      "rationale": "The examination helps identify tachycardia and poor volume status."
+    },
+    {
+      "id": "order-cmp",
+      "label": "Evaluate electrolytes and renal function",
+      "domain": "Diagnosis",
+      "actionType": "order",
+      "match": "cmp",
+      "points": 20,
+      "rationale": "Vomiting and dehydration can cause electrolyte abnormalities and prerenal kidney injury."
+    },
+    {
+      "id": "order-iv-access",
+      "label": "Establish IV access",
+      "domain": "Therapy",
+      "actionType": "order",
+      "match": "iv-access",
+      "points": 10,
+      "rationale": "IV access enables rapid fluid replacement."
+    },
+    {
+      "id": "give-normal-saline",
+      "label": "Administer isotonic intravenous fluid",
+      "domain": "Therapy",
+      "actionType": "order",
+      "match": "normal-saline-bolus",
+      "points": 30,
+      "rationale": "Isotonic fluid treats symptomatic volume depletion."
+    },
+    {
+      "id": "monitor-patient",
+      "label": "Monitor the tachycardic patient",
+      "domain": "Monitoring",
+      "actionType": "order",
+      "match": "cardiac-monitor",
+      "points": 10,
+      "rationale": "Monitoring supports reassessment during rapid fluid replacement."
+    },
+    {
+      "id": "provide-counseling",
+      "label": "Provide hydration instructions and return precautions",
+      "domain": "Therapy",
+      "actionType": "order",
+      "match": "hydration-counseling",
+      "points": 10,
+      "rationale": "Discharge education supports continued recovery and recognition of deterioration."
+    },
+    {
+      "id": "home-after-improvement",
+      "label": "Choose home disposition after improvement",
+      "domain": "Location",
+      "actionType": "location",
+      "match": "Home",
+      "points": 20,
+      "rationale": "A stable patient who has improved may complete recovery at home with precautions."
+    },
+    {
+      "id": "unnecessary-ct",
+      "label": "Avoid unnecessary abdominal CT",
+      "domain": "Diagnosis",
+      "actionType": "order",
+      "match": "ct-abdomen",
+      "points": -5,
+      "rationale": "There are no focal findings requiring abdominal CT in this synthetic case."
+    },
+    {
+      "id": "harmful-diuretic",
+      "label": "Avoid diuretic administration during dehydration",
+      "domain": "Therapy",
+      "actionType": "order",
+      "match": "furosemide-iv",
+      "points": -30,
+      "rationale": "A diuretic worsens this patient's volume depletion."
+    }
+  ],
+  "feedback": "This synthetic teaching case demonstrates how global orders, case-specific results, patient-state changes, simulated time, harmful actions, and score rules work together. It is software-validation content and not clinical guidance."
+}

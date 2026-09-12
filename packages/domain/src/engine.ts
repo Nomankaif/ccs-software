@@ -1,4 +1,4 @@
-import type { AttemptAction, PlacedOrder, ScoreReport } from "./index";
+import type { AttemptAction, PlacedOrder, ScoreReport } from "./index.js";
 
 export const calculateScore = (orders: PlacedOrder[], actions: AttemptAction[]): ScoreReport => {
   const names = new Set(orders.map((order) => order.name.toLowerCase()));

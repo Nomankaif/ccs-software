@@ -13,6 +13,11 @@
     "Inpatient Unit",
     "Home"
   ],
+  "locationTransfers": [
+    { "from": "Emergency Department", "to": "Inpatient Unit", "minutes": 20 },
+    { "from": "Emergency Department", "to": "Home", "minutes": 15 },
+    { "from": "Inpatient Unit", "to": "Home", "minutes": 20 }
+  ],
   "history": {
     "History of Present Illness": "The patient reports two days of nonbloody vomiting and watery diarrhea after a shared meal. Oral intake has been poor. There is lightheadedness when standing but no syncope.",
     "Past Medical History": "No chronic medical conditions or prior hospitalizations.",
@@ -39,6 +44,44 @@
     "Neuro/Psych": "Alert and oriented with no focal neurologic deficit.",
     "Skin": "Warm with mildly reduced skin turgor. No rash."
   },
+  "initialClinicalStateId": "dehydrated",
+  "clinicalStates": [
+    {
+      "id": "dehydrated",
+      "appearance": "The patient appears tired, thirsty, and mildly uncomfortable but is alert and able to answer questions.",
+      "vitals": {
+        "temperature": "37.2 C",
+        "pulse": "108/min",
+        "respirations": "18/min",
+        "bloodPressure": "102/66 mm Hg",
+        "oxygenSaturation": "98% on room air"
+      }
+    },
+    {
+      "id": "improving-after-fluids",
+      "appearance": "The patient appears more comfortable and reports substantially less dizziness.",
+      "vitals": {
+        "temperature": "37.1 C",
+        "pulse": "88/min",
+        "respirations": "16/min",
+        "bloodPressure": "116/74 mm Hg",
+        "oxygenSaturation": "98% on room air"
+      },
+      "progressNote": "After IV fluid administration, dizziness and thirst improve. The patient is able to tolerate oral fluids."
+    },
+    {
+      "id": "worsening-dehydration",
+      "appearance": "The patient is increasingly weak and lightheaded and needs assistance when standing.",
+      "vitals": {
+        "temperature": "37.4 C",
+        "pulse": "122/min",
+        "respirations": "20/min",
+        "bloodPressure": "88/56 mm Hg",
+        "oxygenSaturation": "97% on room air"
+      },
+      "progressNote": "Persistent volume loss without effective replacement has caused hypotension and worsening tachycardia."
+    }
+  ],
   "orders": [
     {
       "id": "iv-access",
@@ -52,7 +95,10 @@
       "aliases": ["normal saline", "iv fluids", "fluid bolus"],
       "category": "Medication",
       "route": ["IV"],
-      "frequency": ["One time/bolus"]
+      "dose": ["500 mL", "1000 mL"],
+      "frequency": ["One time/bolus"],
+      "duration": ["Over 30 minutes", "Over 60 minutes"],
+      "priority": ["STAT", "Routine"]
     },
     {
       "id": "ondansetron",
@@ -113,6 +159,64 @@
       "orderId": "urinalysis",
       "category": "Lab Reports",
       "value": "Concentrated urine with specific gravity 1.030; no leukocyte esterase, nitrites, blood, or protein."
+    }
+  ],
+  "orderBehaviors": [
+    {
+      "orderId": "normal-saline",
+      "classification": "beneficial",
+      "allowedLocations": ["Emergency Department", "Inpatient Unit"],
+      "responseDelayMinutes": 30,
+      "targetStateId": "improving-after-fluids",
+      "notification": "The patient reports less dizziness and is now tolerating oral fluids."
+    },
+    {
+      "orderId": "cbc",
+      "classification": "neutral",
+      "processingMinutes": 20
+    },
+    {
+      "orderId": "cmp",
+      "classification": "beneficial",
+      "processingMinutes": 25
+    },
+    {
+      "orderId": "empiric-antibiotic",
+      "classification": "harmful",
+      "progressNote": "An unnecessary antibiotic was administered without an established bacterial indication."
+    }
+  ],
+  "transitionRules": [
+    {
+      "id": "untreated-deterioration",
+      "trigger": {
+        "type": "time_reached",
+        "atMinute": 60
+      },
+      "conditions": {
+        "clinicalStateId": "dehydrated"
+      },
+      "targetStateId": "worsening-dehydration",
+      "notification": "The patient becomes more lightheaded and hypotensive while awaiting effective treatment."
+    },
+    {
+      "id": "iv-fluid-sequence",
+      "trigger": {
+        "type": "action_combination",
+        "requiredOrderIds": ["iv-access", "normal-saline"]
+      },
+      "progressNote": "Peripheral IV access is established and isotonic fluid resuscitation is initiated."
+    },
+    {
+      "id": "safe-home-disposition",
+      "trigger": {
+        "type": "location_changed",
+        "match": "Home"
+      },
+      "conditions": {
+        "clinicalStateId": "improving-after-fluids"
+      },
+      "progressNote": "The patient is discharged home after improvement with oral hydration instructions and return precautions."
     }
   ],
   "scoreRules": [
