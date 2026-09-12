@@ -1,4 +1,6 @@
 import express from "express";
+import { adminOverviewRouter } from "./routes/admin-overview.routes.js";
+import { auditAdminChanges } from "./middleware/audit.middleware.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import helmet from "helmet";
@@ -6,7 +8,7 @@ import { pinoHttp } from "pino-http";
 import { config } from "./config/env.js";
 import { getHealth } from "./controllers/health.controller.js";
 import { errorHandler } from "./middleware/error.middleware.js";
-import { adminCasesRouter, attemptsRouter, authRouter, casesRouter } from "./routes/index.js";
+import { adminCasesRouter, adminOrdersRouter, attemptsRouter, authRouter, casesRouter } from "./routes/index.js";
 
 export const app = express();
 app.use(helmet());
@@ -17,6 +19,9 @@ app.use(pinoHttp());
 app.get("/api/v1/health", getHealth);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/cases", casesRouter);
+app.use("/api/v1/admin", auditAdminChanges);
+app.use("/api/v1/admin", adminOverviewRouter);
 app.use("/api/v1/admin/cases", adminCasesRouter);
+app.use("/api/v1/admin/orders", adminOrdersRouter);
 app.use("/api/v1/attempts", attemptsRouter);
 app.use(errorHandler);

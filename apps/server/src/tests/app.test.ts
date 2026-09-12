@@ -3,10 +3,10 @@ import request from "supertest";
 import { app } from "../app.js";
 
 describe("REST API", () => {
-  it("reports the REST-only realtime strategy", async () => {
+  it("reports the Socket.IO strategy with REST recovery", async () => {
     const response = await request(app).get("/api/v1/health");
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ status: "ok", realtime: "rest-polling" });
+    expect(response.body).toEqual({ status: "ok", realtime: "socket.io-with-rest-fallback" });
   });
 
   it("clears session cookies even when the access token is missing or expired", async () => {

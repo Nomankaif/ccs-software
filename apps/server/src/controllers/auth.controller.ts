@@ -10,7 +10,7 @@ const cookieOptions = {
 };
 
 const writeSession = (response: Response, session: authService.SessionResult) => {
-  response.cookie("accessToken", session.accessToken, { ...cookieOptions, maxAge: 15 * 60_000 });
+  response.cookie("accessToken", session.accessToken, { ...cookieOptions, maxAge: 24 * 60 * 60_000 });
   response.cookie("refreshToken", session.refreshToken, { ...cookieOptions, maxAge: 7 * 86400_000 });
 };
 

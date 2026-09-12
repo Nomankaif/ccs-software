@@ -17,6 +17,17 @@ export const getState = async (request: AuthedRequest, response: Response) => {
   response.json({ attempt });
 };
 
+export const searchOrders = async (request: AuthedRequest, response: Response) => {
+  const search = typeof request.query.search === "string" ? request.query.search : "";
+  response.json({
+    orders: await attemptService.searchAttemptOrders(
+      getRouteParam(request, "id"),
+      request.user!.id,
+      search
+    )
+  });
+};
+
 export const submitAction = async (request: AuthedRequest, response: Response) => {
   const attempt = await attemptService.submitAttemptAction(
     getRouteParam(request, "id"),

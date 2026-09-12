@@ -1,13 +1,13 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api";
-import type { AttemptState, LibraryCase } from "../types";
+import type { AttemptState, StudentCaseSummary } from "../types";
 
 export const useCaseLibrary = () => {
   const navigate = useNavigate();
   const casesQuery = useQuery({
     queryKey: ["cases"],
-    queryFn: () => api<{ cases: LibraryCase[] }>("/cases")
+    queryFn: () => api<{ cases: StudentCaseSummary[] }>("/cases")
   });
   const startAttempt = useMutation({
     mutationFn: (caseId: string) =>

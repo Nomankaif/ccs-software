@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { caseDefinitionSchema, type CaseDefinitionInput } from "@ccs/validation";
+import type { AdminCase, CatalogOrder, CaseStatus } from "../types";
 
 const starterCase: CaseDefinitionInput = {
   slug: "new-clinical-case",
@@ -12,6 +13,7 @@ const starterCase: CaseDefinitionInput = {
   appearance: "The patient appears stable.",
   startingLocation: "Office",
   allowedLocations: ["Office", "Emergency Department", "Inpatient Unit", "ICU", "Home"],
+  locationTransfers: [],
   history: { "History of Present Illness": "Enter the history of present illness." },
   vitals: {
     temperature: "37.0 C",
@@ -21,6 +23,20 @@ const starterCase: CaseDefinitionInput = {
     oxygenSaturation: "98% on room air"
   },
   exam: { "General Appearance": "Enter examination findings." },
+  initialClinicalStateId: "initial",
+  clinicalStates: [
+    {
+      id: "initial",
+      appearance: "The patient appears stable.",
+      vitals: {
+        temperature: "37.0 C",
+        pulse: "80/min",
+        respirations: "16/min",
+        bloodPressure: "120/80 mm Hg",
+        oxygenSaturation: "98% on room air"
+      }
+    }
+  ],
   orders: [
     {
       id: "cbc",
@@ -31,6 +47,16 @@ const starterCase: CaseDefinitionInput = {
     }
   ],
   results: [{ orderId: "cbc", category: "Lab Reports", value: "Enter the result." }],
+  orderBehaviors: [
+    {
+      orderId: "cbc",
+      classification: "neutral",
+      processingMinutes: 30
+    }
+  ],
+  transitionRules: [],
+  endConditions: [],
+  testScenarios: [],
   scoreRules: [
     {
       id: "cbc",
@@ -51,14 +77,20 @@ const formatIssues = (issues: Array<{ path: PropertyKey[]; message: string }>) =
 export const useAdminCaseEditor = () => {
   const [isEditorOpen, setEditorOpen] = useState(false);
   const [definition, setDefinition] = useState<CaseDefinitionInput>(starterCase);
+  const [editingCaseId, setEditingCaseId] = useState<string | null>(null);
+  const [editingStatus, setEditingStatus] = useState<CaseStatus | null>(null);
   const [validationError, setValidationError] = useState("");
+  const validation = useMemo(() => caseDefinitionSchema.safeParse(definition), [definition]);
+  const validationIssues = validation.success
+    ? []
+    : validation.error.issues.map((issue) => ({ path: issue.path.join("."), message: issue.message }));
 
   const updateField = <K extends keyof CaseDefinitionInput>(
     key: K,
     value: CaseDefinitionInput[K]
   ) => setDefinition((current) => ({ ...current, [key]: value }));
 
-  const updateJsonField = <K extends "history" | "exam" | "orders" | "results" | "scoreRules">(
+  const updateJsonField = <K extends "history" | "exam" | "orders" | "results" | "scoreRules" | "clinicalStates" | "orderBehaviors" | "transitionRules" | "locationTransfers" | "endConditions" | "testScenarios">(
     key: K,
     value: string
   ) => {
@@ -94,14 +126,60 @@ export const useAdminCaseEditor = () => {
     return parsed.data;
   };
 
+  const addCatalogOrder = (order: CatalogOrder) => {
+    setDefinition((current) => current.orders.some((item) => item.id === order.id)
+      ? current
+      : {
+          ...current,
+          orders: [
+            ...current.orders,
+            {
+              id: order.id,
+              name: order.name,
+              aliases: order.aliases,
+              category: order.category,
+              route: order.route,
+              dose: order.dose,
+              frequency: order.frequency,
+              duration: order.duration,
+              priority: order.priority,
+              resultDelayMinutes: order.resultDelayMinutes
+            }
+          ]
+        });
+  };
+
   return {
     isEditorOpen,
     definition,
     validationError,
-    toggleEditor: () => setEditorOpen((current) => !current),
-    closeEditor: () => setEditorOpen(false),
+    validationIssues,
+    isDefinitionValid: validation.success,
+    editingCaseId,
+    editingStatus,
+    toggleEditor: () => {
+      if (isEditorOpen) return setEditorOpen(false);
+      setDefinition(starterCase);
+      setEditingCaseId(null);
+      setEditingStatus(null);
+      setValidationError("");
+      setEditorOpen(true);
+    },
+    editCase: (entry: AdminCase) => {
+      setDefinition(caseDefinitionSchema.parse(entry));
+      setEditingCaseId(entry.id);
+      setEditingStatus(entry.status);
+      setValidationError("");
+      setEditorOpen(true);
+    },
+    closeEditor: () => {
+      setEditorOpen(false);
+      setEditingCaseId(null);
+      setEditingStatus(null);
+    },
     updateField,
     updateJsonField,
+    addCatalogOrder,
     parseImportFile,
     validateDefinition
   };

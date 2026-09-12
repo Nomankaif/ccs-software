@@ -6,10 +6,21 @@ import {
   Stethoscope,
 } from "lucide-react";
 import { useCaseLibrary, useLogout } from "../hooks";
+import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { StudentProgressPanel } from "./StudentProgressPanel";
+import { filterLibrary } from "../hooks/student-progress";
 
 export function CaseLibrary() {
   const logout = useLogout();
   const { casesQuery: cases, startAttempt: start } = useCaseLibrary();
+  const [params, setParams] = useSearchParams();
+  const section = params.get("view") === "history" ? "Attempt history" : params.get("view") === "performance" ? "Performance" : "Case library";
+  const [search, setSearch] = useState("");
+  const [specialty, setSpecialty] = useState("");
+  const [difficulty, setDifficulty] = useState("");
+  const entries = cases.data?.cases ?? [];
+  const visibleCases = filterLibrary(entries, search, specialty, difficulty);
   return (
     
     <main className="min-h-screen bg-[#f1f3f4] text-[#18242b]">
@@ -29,20 +40,12 @@ export function CaseLibrary() {
           </button>
         </nav>
       </header>
-      <div className="grid min-h-[calc(100vh-58px)] grid-cols-[210px_1fr]">
+      <div className="grid min-h-[calc(100vh-58px)] grid-cols-1 md:grid-cols-[210px_minmax(0,1fr)]">
         <aside className="bg-[#263f4e] p-3 pt-[18px]">
-          <button className="mb-[3px] h-10 w-full bg-[#e8eef1] px-3.5 text-left text-sm font-bold text-[#193b50]">
-            Case library
-          </button>
-          <button className="mb-[3px] h-10 w-full px-3.5 text-left text-sm text-[#dbe3e8]">
-            Attempt history
-          </button>
-          <button className="h-10 w-full px-3.5 text-left text-sm text-[#dbe3e8]">
-            Performance
-          </button>
+          {([ ["Case library", ""], ["Attempt history", "history"], ["Performance", "performance"] ] as const).map(([label, view]) => <button key={label} aria-current={section === label ? "page" : undefined} onClick={() => setParams(view ? { view } : {})} className={`mb-[3px] min-h-10 w-full px-3.5 py-2 text-left text-sm ${section === label ? "bg-[#e8eef1] font-bold text-[#193b50]" : "text-[#dbe3e8]"}`}>{label}</button>)}
         </aside>
-        <section className="w-full max-w-[1250px] px-[34px] py-7">
-          <div className="mb-6 flex items-center justify-between">
+        {section !== "Case library" ? <StudentProgressPanel key={section} section={section} /> : <section className="w-full min-w-0 max-w-[1250px] p-4 md:px-[34px] md:py-7">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="mb-1 text-2xl font-bold">Case library</h1>
               <p className="text-[13px] text-[#60717d]">
@@ -59,19 +62,25 @@ export function CaseLibrary() {
               </span>
             </div>
           </div>
-          <div className="mb-4 flex gap-2.5">
+          <div className="mb-4 flex flex-wrap gap-2.5">
             <input
               className="h-[38px] w-[300px] border border-[#9eabb3] bg-white px-2.5"
               placeholder="Search cases"
+              aria-label="Search cases"
+              value={search}
+              onChange={event => setSearch(event.target.value)}
             />
-            <select className="h-[38px] w-[180px] border border-[#9eabb3] bg-white px-2.5">
-              <option>All specialties</option>
+            <select aria-label="Specialty" value={specialty} onChange={event => setSpecialty(event.target.value)} className="h-[38px] w-[180px] border border-[#9eabb3] bg-white px-2.5">
+              <option value="">All specialties</option>
+              {[...new Set(entries.map(item => item.specialty))].sort().map(value => <option key={value}>{value}</option>)}
             </select>
-            <select className="h-[38px] w-[180px] border border-[#9eabb3] bg-white px-2.5">
-              <option>All difficulties</option>
+            <select aria-label="Difficulty" value={difficulty} onChange={event => setDifficulty(event.target.value)} className="h-[38px] w-[180px] border border-[#9eabb3] bg-white px-2.5">
+              <option value="">All difficulties</option>
+              {[...new Set(entries.map(item => item.difficulty))].sort().map(value => <option key={value}>{value}</option>)}
             </select>
           </div>
-          <div className="border border-[#aab5bc] bg-white">
+          {cases.error && <p role="alert" className="mb-4 text-sm text-red-700">{cases.error.message} <button className="underline" onClick={() => void cases.refetch()}>Retry</button></p>}
+          <div className="overflow-x-auto border border-[#aab5bc] bg-white"><div className="min-w-[650px]">
             <div className="grid h-[34px] grid-cols-[2fr_1fr_.8fr_.7fr_40px] items-center border-b border-[#aab5bc] bg-[#d7e0e5] px-3.5 text-[11px] font-bold text-[#3d4c55]">
               <span>Case</span>
               <span>Specialty</span>
@@ -84,11 +93,12 @@ export function CaseLibrary() {
                 Loading cases...
               </p>
             )}
-            {cases.data?.cases.map((entry) => (
+            {visibleCases.map((entry) => (
               <button
                 key={entry.id}
                 className="grid min-h-[66px] w-full grid-cols-[2fr_1fr_.8fr_.7fr_40px] items-center border-0 bg-white px-3.5 text-left text-xs text-[#26353d] hover:bg-[#f3f6f7]"
                 onClick={() => start.mutate(entry.id)}
+                disabled={start.isPending}
               >
                 <span className="grid gap-1">
                   <strong>{entry.title}</strong>
@@ -105,11 +115,13 @@ export function CaseLibrary() {
                 <ChevronRight size={17} />
               </button>
             ))}
-          </div>
+            {cases.data && !visibleCases.length && <p className="p-8 text-center text-sm">No cases match these filters.</p>}
+          </div></div>
+          {start.isPending && <p role="status" className="mt-3 text-sm">Opening case...</p>}
           {start.error && (
             <p className="mt-3 text-sm text-red-700">{start.error.message}</p>
           )}
-        </section>
+        </section>}
       </div>
     </main>
   );

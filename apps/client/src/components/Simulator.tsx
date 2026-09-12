@@ -6,16 +6,17 @@ import {
   MapPin,
   Stethoscope,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import type { CaseDefinitionInput } from "@ccs/validation";
+import { useEffect, useRef, useState } from "react";
 import type {
   AttemptAction,
   CaseResult,
   ChartTab,
+  OrderDefinition,
   PlacedOrder,
   ScoreReport,
 } from "@ccs/domain";
-import { useAttemptSimulator } from "../hooks";
+import { useAttemptOrderSearch, useAttemptSimulator } from "../hooks";
+import type { StudentCaseDefinition } from "../types";
 import { Modal } from "./Modal";
 
 const tabs: ChartTab[] = [
@@ -45,6 +46,7 @@ export function Simulator() {
     attempt,
     attemptQuery: stateQuery,
     secondsLeft,
+    realtimeConnected,
     submitAction: actionMutation,
     leaveSimulator
   } = useAttemptSimulator();
@@ -52,11 +54,19 @@ export function Simulator() {
   const [dialog, setDialog] = useState<Dialog>(null);
   const [tab, setTab] = useState<ChartTab>("Order Sheet");
   const [message, setMessage] = useState("");
+  const seenNotifications = useRef(new Set<string>());
+  const finalOrdersShown = useRef(false);
   useEffect(() => {
-    if (attempt?.status === "final_orders" && stage === "running") {
-      setMessage(
-        "This case is ending. You have 2 minutes to enter final orders.",
+    if (
+      attempt?.status === "final_orders" &&
+      stage === "running" &&
+      !finalOrdersShown.current
+    ) {
+      const finalOrderNotification = attempt.notifications.find(
+        (notification) => notification.type === "FINAL_ORDERS",
       );
+      finalOrdersShown.current = true;
+      setMessage(finalOrderNotification?.message ?? "This case is ending. Enter final orders now.");
       setDialog("message");
     }
     if (
@@ -64,7 +74,23 @@ export function Simulator() {
       attempt.scoreReport
     )
       setStage("score");
-  }, [attempt?.status, attempt?.scoreReport, stage]);
+    const update = attempt?.notifications.find(
+      (notification) =>
+        notification.type === "PATIENT_UPDATE" &&
+        notification.id &&
+        !seenNotifications.current.has(notification.id),
+    );
+    if (update?.id && stage === "running") {
+      seenNotifications.current.add(update.id);
+      setMessage(update.message);
+      setDialog("message");
+    }
+  }, [attempt?.status, attempt?.scoreReport, attempt?.notifications, stage]);
+  useEffect(() => {
+    if (!actionMutation.error) return;
+    setMessage(actionMutation.error.message);
+    setDialog("message");
+  }, [actionMutation.error]);
   if (stateQuery.isLoading || !attempt)
     return (
       <div className="grid min-h-screen place-items-center bg-[#eef1f2] text-sm text-slate-600">
@@ -128,7 +154,7 @@ export function Simulator() {
       ) : (
         <>
           <nav className="command-bar">
-            <button onClick={() => setDialog("exam")}>
+            <button disabled={attempt.status === "final_orders"} onClick={() => setDialog("exam")}>
               <Stethoscope />
               <span>
                 Interval Hx
@@ -144,7 +170,7 @@ export function Simulator() {
                 or Review Chart
               </span>
             </button>
-            <button onClick={() => setDialog("time")}>
+            <button disabled={attempt.status === "final_orders"} onClick={() => setDialog("time")}>
               <Clock3 />
               <span>
                 Obtain Results
@@ -153,7 +179,7 @@ export function Simulator() {
                 <small>{timeLabel(attempt.simulatedMinute)}</small>
               </span>
             </button>
-            <button onClick={() => setDialog("location")}>
+            <button disabled={attempt.status === "final_orders"} onClick={() => setDialog("location")}>
               <MapPin />
               <span>
                 Change Location<strong>{attempt.location}</strong>
@@ -167,6 +193,9 @@ export function Simulator() {
             orders={attempt.orders}
             results={attempt.results}
             actions={attempt.actions}
+            progressNotes={attempt.progressNotes ?? []}
+            vitalSignsLog={attempt.vitalSignsLog ?? []}
+            currentVitals={attempt.currentVitals ?? definition.vitals}
             simMinute={attempt.simulatedMinute}
           />
           <footer className="sim-footer">
@@ -176,7 +205,11 @@ export function Simulator() {
               {Math.floor((attempt.simulatedMinute % 1440) / 60)} Hrs{" "}
               {attempt.simulatedMinute % 60} Mins
             </span>
-            <span>REST synchronization: every 5 seconds</span>
+            <span>
+              {realtimeConnected
+                ? "Realtime synchronization: connected"
+                : "Realtime unavailable: REST synchronization every 5 seconds"}
+            </span>
           </footer>
           {attempt.status === "final_orders" && (
             <div className="final-actions">
@@ -207,24 +240,28 @@ export function Simulator() {
       )}{" "}
       {dialog === "orders" && (
         <OrdersDialog
-          definition={definition}
+          attemptId={attempt.attemptId}
+          placedOrders={attempt.orders}
           onClose={() => setDialog(null)}
-          onOrder={(orderId, route, frequency) => {
+          onOrder={(orderId, qualifiers) => {
             actionMutation.mutate({
               type: "PLACE_ORDER",
               orderId,
-              route,
-              frequency,
+              ...qualifiers,
             });
             setTab("Order Sheet");
+          }}
+          onDiscontinue={(placedOrderId) => {
+            actionMutation.mutate({ type: "DISCONTINUE_ORDER", placedOrderId });
           }}
         />
       )}{" "}
       {dialog === "time" && (
         <TimeDialog
+          currentMinute={attempt.simulatedMinute}
           onClose={() => setDialog(null)}
-          onAdvance={(minutes) => {
-            actionMutation.mutate({ type: "ADVANCE_TIME", minutes });
+          onAdvance={(action) => {
+            actionMutation.mutate(action);
             setDialog(null);
           }}
         />
@@ -276,7 +313,7 @@ function Intro({
   definition,
   onStart,
 }: {
-  definition: CaseDefinitionInput;
+  definition: StudentCaseDefinition;
   onStart: () => void;
 }) {
   return (
@@ -315,7 +352,7 @@ function LaunchStage({
   setStage,
 }: {
   stage: Stage;
-  definition: CaseDefinitionInput;
+  definition: StudentCaseDefinition;
   setStage: (stage: Stage) => void;
 }) {
   const content =
@@ -373,17 +410,29 @@ function Chart({
   orders,
   results,
   actions,
+  progressNotes,
+  vitalSignsLog,
+  currentVitals,
   simMinute,
 }: {
-  definition: CaseDefinitionInput;
+  definition: StudentCaseDefinition;
   tab: ChartTab;
   setTab: (tab: ChartTab) => void;
   orders: PlacedOrder[];
   results: CaseResult[];
   actions: AttemptAction[];
+  progressNotes?: Array<{ id: string; simulatedMinute: number; text: string }>;
+  vitalSignsLog?: Array<{ simulatedMinute: number; vitals: StudentCaseDefinition["vitals"] }>;
+  currentVitals: StudentCaseDefinition["vitals"];
   simMinute: number;
 }) {
   const visibleResults = results.filter((result) => result.category === tab);
+  const fallbackVitalSigns = JSON.stringify(currentVitals) === JSON.stringify(definition.vitals)
+    ? [{ simulatedMinute: 0, vitals: definition.vitals }]
+    : [
+        { simulatedMinute: 0, vitals: definition.vitals },
+        { simulatedMinute: simMinute, vitals: currentVitals }
+      ];
   return (
     <section className="chart-shell">
       <div className="chart-tabs">
@@ -403,25 +452,36 @@ function Chart({
           <Table
             headers={[
               "Order",
-              "Route",
-              "Frequency",
+              "Route / Dose",
+              "Frequency / Duration",
+              "Priority",
               "Order Time",
               "Report Time",
             ]}
-            rows={orders.map((o) => [
-              o.name,
-              o.route ?? "",
-              o.frequency ?? "",
-              timeLabel(o.orderedAt),
-              o.reportAt === undefined ? "" : timeLabel(o.reportAt),
-            ])}
+            rows={orders.map((o) => {
+              const releasedResult = [...results].reverse().find((result) => result.orderId === o.id);
+              const reportMinute = releasedResult?.availableAt ?? o.reportAt;
+              return [
+                o.name,
+                [o.route, o.dose].filter(Boolean).join(" / "),
+                [o.frequency, o.duration].filter(Boolean).join(" / "),
+                o.priority ?? "",
+                timeLabel(o.orderedAt),
+                reportMinute == null ? "" : timeLabel(reportMinute),
+              ];
+            })}
             empty="No orders have been written."
           />
         )}
         {tab === "Progress Notes" && (
           <Table
             headers={["Simulated Time", "Progress Note"]}
-            rows={actions.map((a) => [timeLabel(a.simulatedMinute), a.summary])}
+            rows={[
+              ...(progressNotes ?? []).map((note) => [timeLabel(note.simulatedMinute), note.text]),
+              ...actions
+                .filter((action) => action.type !== "system")
+                .map((action) => [timeLabel(action.simulatedMinute), action.summary]),
+            ]}
             empty="No progress notes are available."
           />
         )}
@@ -435,7 +495,13 @@ function Chart({
               "Blood Pressure",
               "O2 Sat",
             ]}
-            rows={[[timeLabel(0), ...Object.values(definition.vitals)]]}
+            rows={((vitalSignsLog?.length ?? 0) > 0
+              ? vitalSignsLog
+              : fallbackVitalSigns
+            )!.map((entry) => [
+              timeLabel(entry.simulatedMinute),
+              ...Object.values(entry.vitals),
+            ])}
             empty=""
           />
         )}
@@ -456,11 +522,7 @@ function Chart({
           <Table
             headers={["Treatment", "Status", "Time"]}
             rows={orders
-              .filter(
-                (o) =>
-                  definition.orders.find((d) => d.id === o.definitionId)
-                    ?.category === "Medication",
-              )
+              .filter((o) => o.category === "Medication")
               .map((o) => [o.name, o.status, timeLabel(o.orderedAt)])}
             empty="No treatments have been recorded."
           />
@@ -508,7 +570,7 @@ function ExamDialog({
   onHistory,
   onDone,
 }: {
-  definition: CaseDefinitionInput;
+  definition: StudentCaseDefinition;
   onClose: () => void;
   onHistory: () => void;
   onDone: (selected: string[]) => void;
@@ -560,7 +622,7 @@ function HistoryDialog({
   definition,
   onClose,
 }: {
-  definition: CaseDefinitionInput;
+  definition: StudentCaseDefinition;
   onClose: () => void;
 }) {
   return (
@@ -581,33 +643,27 @@ function HistoryDialog({
   );
 }
 function OrdersDialog({
-  definition,
+  attemptId,
+  placedOrders,
   onClose,
   onOrder,
+  onDiscontinue,
 }: {
-  definition: CaseDefinitionInput;
+  attemptId: string;
+  placedOrders: PlacedOrder[];
   onClose: () => void;
-  onOrder: (id: string, route?: string, frequency?: string) => void;
+  onOrder: (id: string, qualifiers: { route?: string; dose?: string; frequency?: string; duration?: string; priority?: string }) => void;
+  onDiscontinue: (placedOrderId: string) => void;
 }) {
   const [query, setQuery] = useState("");
-  const [picked, setPicked] = useState<
-    CaseDefinitionInput["orders"][number] | null
-  >(null);
+  const [picked, setPicked] = useState<OrderDefinition | null>(null);
   const [route, setRoute] = useState("");
+  const [dose, setDose] = useState("");
   const [frequency, setFrequency] = useState("");
-  const matches = useMemo(
-    () =>
-      query.length < 2
-        ? []
-        : definition.orders
-            .filter((item) =>
-              `${item.name} ${item.aliases.join(" ")}`
-                .toLowerCase()
-                .includes(query.toLowerCase()),
-            )
-            .slice(0, 8),
-    [definition.orders, query],
-  );
+  const [duration, setDuration] = useState("");
+  const [priority, setPriority] = useState("");
+  const orderSearch = useAttemptOrderSearch(attemptId, query);
+  const matches = orderSearch.isDebouncing ? [] : orderSearch.data?.orders ?? [];
   return (
     <Modal
       title={picked ? `Order Qualifiers - ${picked.name}` : "Write Orders"}
@@ -616,45 +672,74 @@ function OrdersDialog({
     >
       {picked ? (
         <>
-          <div className="qualifier">
+          {picked.route?.length ? <div className="qualifier">
             <h3>Route of Administration</h3>
-            {(picked.route ?? ["Not applicable"]).map((item) => (
+            {picked.route.map((item) => (
               <label key={item}>
                 <input
                   type="radio"
                   name="route"
                   checked={
-                    (route || picked.route?.[0] || "Not applicable") === item
+                    (route || picked.route?.[0]) === item
                   }
                   onChange={() => setRoute(item)}
                 />{" "}
                 {item}
               </label>
             ))}
-          </div>
-          <div className="qualifier">
+          </div> : null}
+          {picked.dose?.length ? <div className="qualifier">
+            <h3>Dose</h3>
+            {picked.dose.map((item) => (
+              <label key={item}>
+                <input type="radio" name="dose" checked={(dose || picked.dose?.[0]) === item} onChange={() => setDose(item)} />{" "}{item}
+              </label>
+            ))}
+          </div> : null}
+          {picked.frequency?.length ? <div className="qualifier">
             <h3>Frequency</h3>
-            {(picked.frequency ?? ["One time"]).map((item) => (
+            {picked.frequency.map((item) => (
               <label key={item}>
                 <input
                   type="radio"
                   name="frequency"
                   checked={
-                    (frequency || picked.frequency?.[0] || "One time") === item
+                    (frequency || picked.frequency?.[0]) === item
                   }
                   onChange={() => setFrequency(item)}
                 />{" "}
                 {item}
               </label>
             ))}
-          </div>
+          </div> : null}
+          {picked.duration?.length ? <div className="qualifier">
+            <h3>Duration</h3>
+            {picked.duration.map((item) => (
+              <label key={item}>
+                <input type="radio" name="duration" checked={(duration || picked.duration?.[0]) === item} onChange={() => setDuration(item)} />{" "}{item}
+              </label>
+            ))}
+          </div> : null}
+          {picked.priority?.length ? <div className="qualifier">
+            <h3>Priority</h3>
+            {picked.priority.map((item) => (
+              <label key={item}>
+                <input type="radio" name="priority" checked={(priority || picked.priority?.[0]) === item} onChange={() => setPriority(item)} />{" "}{item}
+              </label>
+            ))}
+          </div> : null}
           <div className="modal-actions">
             <button
               onClick={() => {
                 onOrder(
                   picked.id,
-                  route || picked.route?.[0],
-                  frequency || picked.frequency?.[0],
+                  {
+                    route: route || picked.route?.[0],
+                    dose: dose || picked.dose?.[0],
+                    frequency: frequency || picked.frequency?.[0],
+                    duration: duration || picked.duration?.[0],
+                    priority: priority || picked.priority?.[0]
+                  },
                 );
                 setPicked(null);
                 setQuery("");
@@ -683,8 +768,25 @@ function OrdersDialog({
                 <small>{item.category}</small>
               </button>
             ))}
-            {query.length >= 2 && !matches.length && <p>No matching orders.</p>}
+            {query.trim().length >= 2 && (orderSearch.isDebouncing || orderSearch.isFetching) && (
+              <p>Searching orders...</p>
+            )}
+            {query.trim().length >= 2 && !orderSearch.isDebouncing && !orderSearch.isFetching && !matches.length && !orderSearch.isError && (
+              <p>No matching orders.</p>
+            )}
+            {orderSearch.isError && <p>Order search is temporarily unavailable.</p>}
           </div>
+          {placedOrders.some((order) => ["active", "held"].includes(order.status)) && (
+            <div className="qualifier">
+              <h3>Active orders</h3>
+              {placedOrders.filter((order) => ["active", "held"].includes(order.status)).map((order) => (
+                <div className="flex items-center justify-between border-b border-[#c5cdd1] py-2 text-sm" key={order.id}>
+                  <span>{order.name}{order.status === "held" ? " (Held)" : ""}</span>
+                  <button onClick={() => onDiscontinue(order.id)}>Discontinue</button>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="modal-actions">
             <button onClick={onClose}>Done</button>
           </div>
@@ -694,13 +796,17 @@ function OrdersDialog({
   );
 }
 function TimeDialog({
+  currentMinute,
   onClose,
   onAdvance,
 }: {
+  currentMinute: number;
   onClose: () => void;
-  onAdvance: (minutes: number) => void;
+  onAdvance: (action: Record<string, unknown>) => void;
 }) {
   const [minutes, setMinutes] = useState(30);
+  const [mode, setMode] = useState<"interval" | "result" | "appointment" | "needed">("interval");
+  const [appointmentMinutes, setAppointmentMinutes] = useState(60);
   return (
     <Modal title="Reevaluate" onClose={onClose} width={500}>
       <div className="reevaluate">
@@ -715,7 +821,7 @@ function TimeDialog({
         <fieldset>
           <legend>Reevaluate Case</legend>
           <label>
-            <input type="radio" defaultChecked /> In{" "}
+            <input type="radio" name="advance-mode" checked={mode === "interval"} onChange={() => setMode("interval")} /> In{" "}
             <input
               type="number"
               min={1}
@@ -725,15 +831,27 @@ function TimeDialog({
             minute(s)
           </label>
           <label>
-            <input type="radio" /> With next available result
+            <input type="radio" name="advance-mode" checked={mode === "result"} onChange={() => setMode("result")} /> With next available result
           </label>
           <label>
-            <input type="radio" /> Call/see me as needed
+            <input type="radio" name="advance-mode" checked={mode === "appointment"} onChange={() => setMode("appointment")} /> At an appointment in{" "}
+            <input type="number" min={1} value={appointmentMinutes} onChange={(event) => setAppointmentMinutes(Number(event.target.value))} /> minute(s)
+          </label>
+          <label>
+            <input type="radio" name="advance-mode" checked={mode === "needed"} onChange={() => setMode("needed")} /> Call/see me as needed
           </label>
         </fieldset>
       </div>
       <div className="modal-actions">
-        <button onClick={() => onAdvance(minutes)}>OK</button>
+        <button onClick={() => onAdvance(
+          mode === "interval"
+            ? { type: "ADVANCE_TIME", minutes }
+            : mode === "result"
+              ? { type: "ADVANCE_TO_NEXT_RESULT" }
+              : mode === "appointment"
+                ? { type: "ADVANCE_TO_SIMULATED_MINUTE", targetMinute: currentMinute + appointmentMinutes }
+                : { type: "ADVANCE_TO_NEXT_EVENT" }
+        )}>OK</button>
         <button onClick={onClose}>Cancel</button>
       </div>
     </Modal>
@@ -745,7 +863,7 @@ function LocationDialog({
   onClose,
   onSelect,
 }: {
-  definition: CaseDefinitionInput;
+  definition: StudentCaseDefinition;
   current: string;
   onClose: () => void;
   onSelect: (location: string) => void;
@@ -824,6 +942,16 @@ function ScoreScreen({
               <li key={x}>{x}</li>
             ))}
           </ul>
+          {(score.partial?.length ?? 0) > 0 && (
+            <>
+              <h3>Partial credit</h3>
+              <ul className="missed-list">
+                {score.partial!.map((x) => (
+                  <li key={x}>{x}</li>
+                ))}
+              </ul>
+            </>
+          )}
           <h3>Missed opportunities</h3>
           <ul className="missed-list">
             {score.missed.map((x) => (
@@ -844,7 +972,7 @@ function ScoreScreen({
       </div>
       <section className="timeline">
         <h2>Attempt timeline</h2>
-        {actions.map((a) => (
+        {[...actions].sort((left, right) => left.simulatedMinute - right.simulatedMinute).map((a) => (
           <div key={a.id}>
             <time>{timeLabel(a.simulatedMinute)}</time>
             <span>{a.summary}</span>

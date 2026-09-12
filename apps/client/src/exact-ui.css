@@ -134,7 +134,9 @@ button { cursor: pointer; }
 .system-message, .end-message { min-height: 100px; background: white; border: 1px solid #aab5bb; display: grid; place-items: center; text-align: center; padding: 25px; }.end-message p { margin: 0; }
 
 .score-page { min-height: 100vh; background: #eef1f2; padding-bottom: 45px; }
-.score-page > header { height: 82px; padding: 14px 32px; background: #263f4e; color: white; display: flex; justify-content: space-between; align-items: center; }.score-page header small { color: #b8cbd5; }.score-page header h1 { margin: 5px 0 0; font-size: 21px; }.score-page header button { background: #f5f7f8; border: 1px solid #9eacb3; height: 34px; padding: 0 14px; }
+.score-page > header { height: 82px; padding: 14px 32px; background: #263f4e; color: white; display: flex; justify-content: space-between; align-items: center; }.score-page header small { color: #b8cbd5; }.score-page header h1 { margin: 5px 0 0; font-size: 21px; }.score-page header button { color: #193b50; background: #f5f7f8; border: 1px solid #9eacb3; height: 34px; padding: 0 14px; }
+.score-page header button:hover { color: #193b50; background: #dce8ee; }
+.score-page header button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 .score-summary, .score-columns, .timeline { max-width: 1100px; margin: 22px auto 0; background: white; border: 1px solid #aab5bc; }
 .score-summary { display: flex; align-items: center; gap: 22px; padding: 22px; }.score-circle { width: 92px; height: 92px; border: 8px solid var(--blue); border-radius: 50%; display: grid; place-items: center; align-content: center; }.score-circle strong { font-size: 29px; }.score-circle span { font-size: 11px; color: var(--muted); }.score-summary h2 { font-size: 17px; margin: 0 0 8px; }.score-summary p { color: #52636d; font-size: 13px; }
 .score-columns { display: grid; grid-template-columns: 1fr 1fr; }.score-columns > section { padding: 20px; }.score-columns > section:first-child { border-right: 1px solid #cbd3d7; }.score-columns h2, .timeline h2 { margin: 0 0 16px; font-size: 16px; }.score-columns h3 { font-size: 12px; margin: 17px 0 6px; }

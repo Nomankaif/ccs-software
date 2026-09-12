@@ -10,5 +10,6 @@ attemptsRouter.use(requireAuth);
 attemptsRouter.post("/", validateBody(startAttemptSchema), attemptController.start);
 attemptsRouter.get("/", attemptController.list);
 attemptsRouter.get("/:id/state", attemptController.getState);
+attemptsRouter.get("/:id/orders", attemptController.searchOrders);
 attemptsRouter.post("/:id/actions", validateBody(attemptActionSchema), attemptController.submitAction);
 attemptsRouter.get("/:id/report", attemptController.getReport);
