@@ -49,7 +49,7 @@ describe("case publication readiness", () => {
     expect(report.scenarios[0]).toMatchObject({ passed: true, score: 100, clinicalStateId: "recovered" });
   });
 
-  it("detects unreachable states, missing result timing, end conditions, and ideal scenarios", () => {
+  it("keeps core validation required without scenarios", () => {
     const definition = validDefinition();
     definition.clinicalStates?.push({ id: "orphan", appearance: "Unreachable." });
     definition.orders[0].resultDelayMinutes = undefined;
@@ -60,7 +60,26 @@ describe("case publication readiness", () => {
     expect(codes).toContain("UNREACHABLE_STATE");
     expect(codes).toContain("RESULT_TIMING_MISSING");
     expect(codes).toContain("END_CONDITION_MISSING");
-    expect(codes).toContain("IDEAL_SCENARIO_MISSING");
+    expect(codes).not.toContain("IDEAL_SCENARIO_MISSING");
+    expect(codes).not.toContain("SCENARIO_COVERAGE_MISSING");
+  });
+
+  it.each([undefined, []])("allows publication without optional scenarios: %s", scenarios => {
+    const definition = validDefinition();
+    definition.testScenarios = scenarios;
+    const report = evaluateCaseQuality(definition);
+    expect(report.ready).toBe(true);
+    expect(report.scenarios).toEqual([]);
+    expect(report.issues.some(item => item.code.includes("SCENARIO"))).toBe(false);
+  });
+
+  it("still checks scenarios when the author supplies them", () => {
+    const definition = validDefinition();
+    definition.testScenarios![0].expected.maximumScore = 50;
+    definition.testScenarios![0].expected.minimumScore = 0;
+    const report = evaluateCaseQuality(definition);
+    expect(report.ready).toBe(false);
+    expect(report.issues.some(item => item.code === "SCENARIO_FAILED")).toBe(true);
   });
 
   it("blocks unavoidable treatment prerequisite cycles", () => {

@@ -145,7 +145,7 @@ export const resolveCatalogOrders = async (orders: OrderDefinitionInput[]) => {
       frequency: entry.frequency,
       duration: entry.duration,
       priority: entry.priority,
-      resultDelayMinutes: entry.defaultResultDelayMinutes
+      resultDelayMinutes: order.resultDelayMinutes ?? entry.defaultResultDelayMinutes
     } as OrderDefinitionInput;
   });
 };

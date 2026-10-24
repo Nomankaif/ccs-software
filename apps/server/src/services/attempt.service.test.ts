@@ -432,6 +432,8 @@ describe("timing and sequence scoring", () => {
 
     expect(report.total).toBe(10);
     expect(report.partial).toEqual(["Give dextrose promptly after glucose and IV access (10/25 points)"]);
+    expect(report.details[0]).toMatchObject({ status: "partial", awardedPoints: 10, possiblePoints: 25, simulatedMinute: 15 });
+    expect(report.details[0].explanation).toContain("after the full-credit deadline");
     expect(report.missed).toContain("Send home only after recovery");
   });
 
@@ -447,6 +449,7 @@ describe("timing and sequence scoring", () => {
 
     expect(report.total).toBe(0);
     expect(report.harmful).toContain("Send home only after recovery");
+    expect(report.details.find(item => item.status === "penalty")?.explanation).toContain("wrong order");
   });
 });
 
@@ -639,6 +642,24 @@ describe("result and order lifecycle scoring", () => {
 });
 
 describe("clinical event resolution", () => {
+  it.each(["Imaging", "Treatment Record"])("releases %s report content only at its scheduled time", category => {
+    const imageDataUrl = category === "Imaging" ? "data:image/png;base64,aGVsbG8=" : undefined;
+    const attempt = {
+      simulatedMinute: 0,
+      caseSnapshot: { results: [{ orderId: "test", category, value: "Report text", imageDataUrl }], transitionRules: [] },
+      orders: [{ id: "placed-test", definitionId: "test", name: "Test", reportAt: 4, status: "active" }],
+      results: [], pendingEvents: [], progressNotes: [], patientNotifications: [], actions: [],
+      triggeredRuleIds: [], vitalSignsLog: [], markModified: () => undefined
+    } as any;
+    resolveDueEvents(attempt, 3);
+    expect(attempt.results).toEqual([]);
+    resolveDueEvents(attempt, 4);
+    expect(attempt.results).toHaveLength(1);
+    expect(attempt.results[0]).toMatchObject({ category, value: "Report text", availableAt: 4, imageDataUrl });
+    resolveDueEvents(attempt, 5);
+    expect(attempt.results).toHaveLength(1);
+  });
+
   it("releases results at their due time and applies a later patient response", () => {
     const attempt = {
       simulatedMinute: 0,

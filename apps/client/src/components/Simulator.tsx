@@ -18,6 +18,8 @@ import type {
 import { useAttemptOrderSearch, useAttemptSimulator } from "../hooks";
 import type { StudentCaseDefinition } from "../types";
 import { Modal } from "./Modal";
+import { ImagingReportImage } from "./ImagingReportImage";
+import { ScoreBreakdown } from "./ScoreBreakdown";
 
 const tabs: ChartTab[] = [
   "Order Sheet",
@@ -512,13 +514,14 @@ function Chart({
             headers={["Test", "Result", "Report Time"]}
             rows={visibleResults.map((r) => [
               r.name,
-              r.value,
+              <div className="grid gap-2"><span>{r.value}</span>{r.imageDataUrl && <ImagingReportImage src={r.imageDataUrl} name={r.name} />}</div>,
               timeLabel(r.availableAt),
             ])}
             empty="No results are available."
           />
         )}
         {tab === "Treatment Record" && (
+          <>
           <Table
             headers={["Treatment", "Status", "Time"]}
             rows={orders
@@ -526,6 +529,13 @@ function Chart({
               .map((o) => [o.name, o.status, timeLabel(o.orderedAt)])}
             empty="No treatments have been recorded."
           />
+          <h3 className="p-2 font-bold">Treatment results</h3>
+          <Table
+            headers={["Treatment", "Result", "Report Time"]}
+            rows={visibleResults.map(result => [result.name, result.value, timeLabel(result.availableAt)])}
+            empty="No treatment results are available."
+          />
+          </>
         )}
       </div>
       <div className="chart-status">
@@ -540,7 +550,7 @@ function Table({
   empty,
 }: {
   headers: string[];
-  rows: string[][];
+  rows: import("react").ReactNode[][];
   empty: string;
 }) {
   return (
@@ -554,7 +564,7 @@ function Table({
         rows.map((row, i) => (
           <div className="clinical-tr" key={i}>
             {row.map((cell, j) => (
-              <span key={j}>{cell}</span>
+              <div className="clinical-cell" key={j}>{cell}</div>
             ))}
           </div>
         ))
@@ -918,7 +928,7 @@ function ScoreScreen({
         </div>
         <div>
           <h2>Performance summary</h2>
-          <p>{score.rationale}</p>
+          <p>{score.rationale === "Enter the clinician-authored feedback shown after the case." ? "No overall clinical feedback was provided by the case author." : score.rationale}</p>
         </div>
       </section>
       <div className="score-columns">
@@ -936,6 +946,13 @@ function ScoreScreen({
         </section>
         <section>
           <h2>Case feedback</h2>
+          {score.details ? <>
+            <h3>What went well</h3>
+            <ul className="good-list">{score.details.filter(item => item.status === "met").map((item, index) => <li key={index}>{item.label}: +{item.awardedPoints} points</li>)}</ul>
+            <h3>What needs attention</h3>
+            <ul className="missed-list">{score.details.filter(item => ["partial", "missed", "penalty"].includes(item.status)).map((item, index) => <li key={index}>{item.label}: {item.explanation}</li>)}</ul>
+            {!score.details.some(item => ["partial", "missed", "penalty"].includes(item.status)) && <p>No missed credit or penalties in the configured scoring rules.</p>}
+          </> : <>
           <h3>Completed actions</h3>
           <ul className="good-list">
             {score.ideal.map((x) => (
@@ -968,8 +985,10 @@ function ScoreScreen({
               </ul>
             </>
           )}
+          </>}
         </section>
       </div>
+      <ScoreBreakdown score={score} formatTime={timeLabel} />
       <section className="timeline">
         <h2>Attempt timeline</h2>
         {[...actions].sort((left, right) => left.simulatedMinute - right.simulatedMinute).map((a) => (

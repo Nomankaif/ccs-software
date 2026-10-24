@@ -58,6 +58,7 @@ export interface PlacedOrder {
 }
 
 export interface CaseResult {
+  imageDataUrl?: string;
   id: string;
   orderId: string;
   category: ChartTab;
@@ -97,6 +98,20 @@ export interface AttemptAction {
 }
 
 export interface ScoreReport {
+  details?: Array<{
+    ruleId: string;
+    label: string;
+    action: string;
+    domain: string;
+    status: "met" | "partial" | "missed" | "penalty" | "avoided";
+    awardedPoints: number;
+    possiblePoints: number;
+    simulatedMinute?: number;
+    explanation: string;
+    rationale?: string;
+    expected: string;
+  }>;
+  rawTotal?: number;
   total: number;
   domains: Array<{ label: string; score: number; max: number }>;
   ideal: string[];

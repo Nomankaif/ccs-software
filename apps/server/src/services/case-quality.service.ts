@@ -152,9 +152,6 @@ export const analyzeCaseDefinition = (definition: CaseDefinitionInput) => {
     if (rule.actionType === "result" && !resultIds.has(rule.match)) issues.push(issue("error", "SCORE_RESULT_UNAVAILABLE", `scoreRules.${index}`, `Score rule '${rule.label}' depends on a result that is not configured.`));
   }
 
-  const scenarios = definition.testScenarios ?? [];
-  if (!scenarios.some((scenario) => scenario.kind === "ideal")) issues.push(issue("error", "IDEAL_SCENARIO_MISSING", "testScenarios", "An executable ideal-management scenario is required."));
-  for (const kind of ["delayed", "harmful", "no_treatment"] as const) if (!scenarios.some((scenario) => scenario.kind === kind)) issues.push(issue("warning", "SCENARIO_COVERAGE_MISSING", "testScenarios", `Add a ${kind.replace("_", " ")} scenario for regression coverage.`));
 
   return {
     issues,
@@ -165,7 +162,7 @@ export const analyzeCaseDefinition = (definition: CaseDefinitionInput) => {
       configuredBehaviors: configuredBehaviorIds.size,
       positivePoints,
       negativePoints,
-      scenarios: scenarios.length
+      scenarios: definition.testScenarios?.length ?? 0
     }
   };
 };

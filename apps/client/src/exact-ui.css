@@ -93,7 +93,7 @@ button { cursor: pointer; }
 .chart-status { padding: 5px 9px; color: #344750; font-size: 10px; }
 .clinical-table { width: 100%; }
 .clinical-tr { min-height: 27px; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-bottom: 1px solid #bbc4c9; }
-.clinical-tr span { padding: 6px 7px; border-right: 1px solid #c5cdd1; overflow-wrap: anywhere; }
+.clinical-tr > span, .clinical-tr > .clinical-cell { min-width: 0; padding: 6px 7px; border-right: 1px solid #c5cdd1; overflow-wrap: anywhere; }
 .clinical-tr.header { min-height: 25px; background: #d4dce0; font-weight: 700; color: #44545d; }
 .empty-table { text-align: center; color: #77858c; padding: 50px; }
 .sim-footer { display: flex; justify-content: space-between; padding: 5px 15px; border-top: 1px solid #84939b; background: #dce2e5; font-size: 10px; }
@@ -144,6 +144,23 @@ button { cursor: pointer; }
 .score-columns ul { margin: 0; padding-left: 20px; font-size: 12px; line-height: 1.7; }.good-list { color: #326b50; }.missed-list { color: #815f2b; }.harm-list { color: #9a3232; }
 .timeline { padding: 20px; }.timeline > div { display: grid; grid-template-columns: 190px 1fr; border-top: 1px solid #d5dbde; padding: 10px 0; font-size: 12px; }.timeline time { color: #5e6f78; }
 
+.score-breakdown { max-width: 1100px; margin: 22px auto 0; padding: 20px; background: white; border-top: 1px solid #aab5bc; border-bottom: 1px solid #aab5bc; }
+.score-breakdown h2 { margin: 0 0 16px; font-size: 16px; }
+.score-totals { display: flex; flex-wrap: wrap; gap: 24px; padding: 12px 0; border-block: 1px solid #d5dbde; font-size: 13px; }
+.score-totals strong { margin-left: 8px; }
+.score-rule { padding: 18px 0; border-bottom: 1px solid #d5dbde; font-size: 13px; overflow-wrap: anywhere; }
+.score-rule:last-child { border-bottom: 0; }
+.score-rule-heading { display: flex; justify-content: space-between; gap: 20px; }
+.score-rule h3 { font-size: 14px; margin: 0 0 6px; }
+.score-rule small { color: #61717b; }
+.score-rule-heading > strong { text-align: right; white-space: nowrap; }
+.score-rule-heading > strong span { display: block; font-size: 11px; font-weight: 400; margin-top: 4px; }
+.score-rule-met .score-rule-heading > strong { color: #326b50; }
+.score-rule-penalty .score-rule-heading > strong { color: #9a3232; }
+.score-rule-partial .score-rule-heading > strong, .score-rule-missed .score-rule-heading > strong { color: #815f2b; }
+.score-rule p { margin: 10px 0; }
+.score-rule dl { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 8px 16px; margin: 12px 0 0; }
+.score-rule dt { color: #61717b; }.score-rule dd { margin: 0; }
 @media (max-width: 1099px) {
   body::before { content: "ClinSim CCS requires a desktop browser at least 1100 pixels wide."; position: fixed; inset: 0; z-index: 100; background: #edf1f3; display: grid; place-items: center; padding: 30px; text-align: center; font-weight: 700; }
 }

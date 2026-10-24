@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import type { CaseDefinitionInput } from "@ccs/validation";
+import type { ScoreReport } from "@ccs/domain";
 import { AppError } from "../errors/app-error.js";
 import { AttemptModel, CaseModel } from "../models/index.js";
 import type { AttemptActionInput } from "../validators/attempt.validator.js";
@@ -155,9 +156,29 @@ export const scoreAttempt = (attempt: AttemptDocument) => {
   const missed: string[] = [];
   const harmful: string[] = [];
   const domains = new Map<string, number>();
+  const details: NonNullable<ScoreReport["details"]> = [];
+  const actionName = (reference: ScoreReference) => {
+    const name = definition.orders?.find(order => order.id === reference.match)?.name ?? reference.match;
+    const verbs: Record<string, string> = { order: "Order", result: "Obtain result for", exam: "Examine", location: "Move to", clinical_state: "Reach clinical state", order_completed: "Complete", order_discontinued: "Discontinue" };
+    return `${verbs[reference.actionType] ?? reference.actionType}: ${name}`;
+  };
   let total = 0;
 
   for (const rule of definition.scoreRules) {
+    const action = actionName(rule);
+    const requirements = [action];
+    if ((rule.minimumOccurrences ?? 1) > 1) requirements.push(`At least ${rule.minimumOccurrences} occurrences`);
+    if (rule.qualifierConditions) requirements.push(...Object.entries(rule.qualifierConditions).map(([key, values]) => `${key}: ${values?.join(" or ")}`));
+    if (rule.timing) requirements.push(`Full credit by simulated minute ${rule.timing.fullCreditByMinute}${rule.timing.partialCreditByMinute !== undefined ? `; partial credit through minute ${rule.timing.partialCreditByMinute}` : ""}`);
+    if (rule.sequence) requirements.push(`First: ${rule.sequence.requiredPriorActions.map(actionName).join("; ")}`);
+    if (rule.afterAction) requirements.push(`After ${actionName(rule.afterAction)}${rule.afterAction.minimumDelayMinutes !== undefined ? `; wait at least ${rule.afterAction.minimumDelayMinutes} minutes` : ""}${rule.afterAction.maximumDelayMinutes !== undefined ? `; within ${rule.afterAction.maximumDelayMinutes} minutes` : ""}`);
+    const base = {
+      ruleId: rule.id, action, domain: rule.domain,
+      label: rule.label === "New score rule" ? action : rule.label,
+      possiblePoints: rule.points,
+      rationale: rule.rationale && rule.rationale !== "Explain why this matters." ? rule.rationale : undefined,
+      expected: `${rule.points < 0 ? "Avoid this case-configured penalty: " : ""}${requirements.join(". ")}`
+    };
     const occurrences = findActionEvidenceList(attempt, definition, rule);
     const unqualifiedOccurrences = rule.qualifierConditions
       ? findActionEvidenceList(attempt, definition, { actionType: rule.actionType, match: rule.match })
@@ -192,9 +213,13 @@ export const scoreAttempt = (attempt: AttemptDocument) => {
     }
     if (!evidence) {
       if (rule.points > 0) missed.push(rule.label);
+      details.push({ ...base, awardedPoints: 0, status: rule.points < 0 ? "avoided" : "missed",
+        explanation: rule.points < 0 ? "This case-configured penalty was not triggered." : unqualifiedOccurrences.length === 0 ? "No matching action was recorded." : "An action was recorded, but it did not meet the required details, number of occurrences, or follow-up timing." });
       continue;
     }
 
+    const reasons: string[] = [];
+    if (qualifierMismatch) reasons.push("The order details did not match the configured requirements.");
     let awardedPoints = qualifierMismatch ? rule.pointsIfQualifierMismatch ?? 0 : rule.points;
     if (rule.points > 0 && rule.sequence) {
       const sequencePassed = rule.sequence.requiredPriorActions.every((reference) => {
@@ -203,11 +228,15 @@ export const scoreAttempt = (attempt: AttemptDocument) => {
           prerequisite.index < evidence.index &&
           prerequisite.simulatedMinute <= evidence.simulatedMinute;
       });
-      if (!sequencePassed) awardedPoints = rule.sequence.pointsIfViolated;
+      if (!sequencePassed) {
+        awardedPoints = rule.sequence.pointsIfViolated;
+        reasons.push("A required preceding action was missing or performed in the wrong order.");
+      }
     }
 
     if (rule.points > 0 && awardedPoints === rule.points && rule.timing) {
       if (evidence.simulatedMinute > rule.timing.fullCreditByMinute) {
+        reasons.push(`The action occurred at simulated minute ${evidence.simulatedMinute}, after the full-credit deadline of minute ${rule.timing.fullCreditByMinute}.`);
         awardedPoints = rule.timing.partialCreditByMinute !== undefined &&
           evidence.simulatedMinute <= rule.timing.partialCreditByMinute
           ? rule.timing.partialCreditPoints ?? 0
@@ -216,6 +245,9 @@ export const scoreAttempt = (attempt: AttemptDocument) => {
     }
 
     total += awardedPoints;
+    details.push({ ...base, awardedPoints, simulatedMinute: evidence.simulatedMinute,
+      status: awardedPoints < 0 ? "penalty" : awardedPoints === rule.points ? "met" : awardedPoints > 0 ? "partial" : "missed",
+      explanation: reasons.join(" ") || (awardedPoints < 0 ? "This action triggered a penalty configured by the case author." : "The action met this scoring rule's requirements.") });
     domains.set(rule.domain, (domains.get(rule.domain) ?? 0) + awardedPoints);
     if (awardedPoints < 0) {
       harmful.push(rule.label);
@@ -229,6 +261,8 @@ export const scoreAttempt = (attempt: AttemptDocument) => {
   }
 
   return {
+    details,
+    rawTotal: total,
     total: Math.max(0, Math.min(100, total)),
     domains: [...domains].map(([label, score]) => ({ label, score: Math.max(0, score), max: 100 })),
     ideal: met,
@@ -1167,6 +1201,7 @@ export const resolveDueEvents = (attempt: AttemptDocument, targetMinute: number)
           name: placed.name,
           category: placed.resultCategorySnapshot ?? result.category,
           value: resultValue,
+          imageDataUrl: result.imageDataUrl,
           availableAt: due.dueMinute,
           collectedAt,
           occurrence

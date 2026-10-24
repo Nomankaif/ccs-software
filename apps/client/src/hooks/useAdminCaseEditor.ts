@@ -50,8 +50,7 @@ const starterCase: CaseDefinitionInput = {
   orderBehaviors: [
     {
       orderId: "cbc",
-      classification: "neutral",
-      processingMinutes: 30
+      classification: "neutral"
     }
   ],
   transitionRules: [],

@@ -67,6 +67,7 @@ export const orderQualifierConditionsSchema = z.object({
 });
 
 export const resultDefinitionSchema = z.object({
+  imageDataUrl: z.string().max(700000).regex(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/, "Use a PNG, JPEG, or WebP image").optional(),
   orderId: z.string().min(1),
   category: z.enum(["Lab Reports", "Imaging", "Other Tests", "Treatment Record"]),
   value: z.string().min(1),
@@ -269,7 +270,7 @@ export const caseDefinitionSchema = z.object({
   transitionRules: z.array(transitionRuleSchema).optional(),
   endConditions: z.array(caseEndConditionSchema).optional(),
   testScenarios: z.array(caseTestScenarioSchema).max(20).optional(),
-  results: z.array(resultDefinitionSchema),
+  results: z.array(resultDefinitionSchema).refine(results => results.reduce((size, result) => size + (result.imageDataUrl?.length ?? 0), 0) <= 1400000, "Case images exceed the total size limit"),
   scoreRules: z.array(scoreRuleSchema).min(1),
   feedback: z.string().min(10)
 }).superRefine((value, context) => {
